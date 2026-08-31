@@ -139,12 +139,12 @@ export const HeroSection: React.FC = () => {
             className="lg:col-span-5 relative"
           >
             <div className="relative rounded-3xl overflow-hidden glass-panel-glow border border-emerald-500/20 p-2 sm:p-4">
-              <div className="absolute top-4 left-4 z-20 px-3 py-1 rounded-full bg-slate-950/80 border border-white/10 text-[11px] font-medium text-slate-300 flex items-center space-x-1.5 backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>3D Celengan Emas Berkah</span>
+              <div className="absolute top-4 left-4 z-20 px-3.5 py-1 rounded-full bg-slate-950/85 border border-amber-400/30 text-[11px] font-medium text-amber-300 flex items-center space-x-1.5 backdrop-blur-md shadow-lg shadow-black/50">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                <span>Si Berkah — Maskot Celengan Emas 3D</span>
               </div>
-              <div className="absolute bottom-4 right-4 z-20 px-3 py-1 rounded-full bg-slate-950/80 border border-emerald-500/30 text-[10px] font-mono text-emerald-400 backdrop-blur-md">
-                Hover / Gerakkan Kursor
+              <div className="absolute bottom-4 right-4 z-20 px-3 py-1 rounded-full bg-slate-950/85 border border-emerald-500/40 text-[10px] font-mono text-emerald-300 backdrop-blur-md shadow-lg shadow-black/50">
+                👆 Klik untuk Goyang • Arahkan Kursor
               </div>
               <ThreeHeroCanvas />
             </div>
