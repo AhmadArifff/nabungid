@@ -8,14 +8,22 @@ import {
   ShieldAlert,
   ShoppingBag,
   Sparkles,
+  Flame,
+  CheckCircle2,
+  Clock,
+  Upload,
+  Calendar,
+  Check,
 } from 'lucide-react';
 import { useNasabahStore } from '../../../stores/useNasabahStore';
+import { useAuthStore } from '../../../stores/useAuthStore';
 import { CircularProgress } from '../../../components/nasabah/CircularProgress';
 import { UploadProofModal } from '../../../components/nasabah/UploadProofModal';
 import { EmergencyWithdrawalModal } from '../../../components/nasabah/EmergencyWithdrawalModal';
 import { WeeklyLedgerItem } from '@nabungid/shared';
 
 export default function NasabahDashboardPage() {
+  const { user } = useAuthStore();
   const { program, bundle, ledgers, withdrawals, payWeek, getPayoutSummary } = useNasabahStore();
   const [selectedLedger, setSelectedLedger] = useState<WeeklyLedgerItem | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -41,9 +49,14 @@ export default function NasabahDashboardPage() {
             <Sparkles className="w-6 h-6 text-amber-400 animate-pulse" />
           </div>
           <div>
-            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-              Tabungan Berkah 50 Minggu
-            </h1>
+            <div className="flex items-center space-x-2">
+              <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                Tabungan Berkah 50 Minggu
+              </h1>
+              <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-bold">
+                {user?.name || 'Nasabah'}
+              </span>
+            </div>
             <p className="text-xs text-slate-300 mt-0.5">
               Target pencairan H-1 Idul Fitri 1447H • Rp {program.weeklyNominal.toLocaleString('id-ID')} / minggu
             </p>
@@ -56,7 +69,7 @@ export default function NasabahDashboardPage() {
               className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all flex items-center space-x-1.5"
             >
               <Coins className="w-4 h-4" />
-              <span>Setor Minggu Ke-{nextUnpaidLedger.weekNumber}</span>
+              <span>Cek-in Minggu Ke-{nextUnpaidLedger.weekNumber}</span>
             </button>
           )}
           <button
@@ -66,6 +79,95 @@ export default function NasabahDashboardPage() {
             <ShieldAlert className="w-4 h-4" />
             <span className="hidden sm:inline">Tarik Darurat</span>
           </button>
+        </div>
+      </div>
+
+      {/* 📇 Mini Member Stamp Card Strip (Preview Kartu Absensi) */}
+      <div className="p-5 rounded-3xl bg-slate-900/80 border border-amber-400/30 backdrop-blur-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div className="flex items-center space-x-2">
+            <span className="p-1.5 rounded-lg bg-amber-400/20 text-amber-300">
+              <Calendar className="w-4 h-4" />
+            </span>
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                <span>Kartu Absensi Cek-in Setoran Mingguan</span>
+                <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">
+                  <Flame className="w-3 h-3 fill-orange-400" />
+                  <span>{verifiedWeeks} Mg Streak</span>
+                </span>
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Stempel kehadiran setoran digital nasabah • Disiplin tanpa bolong
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/tabunganku"
+            className="text-xs text-amber-400 font-semibold hover:underline flex items-center space-x-1 self-start sm:self-auto"
+          >
+            <span>Buka Kartu Absen Lengkap (50 Minggu)</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {/* Quick 6-Week Recent Stamp Strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+          {ledgers.slice(14, 20).map((item) => {
+            const isVerified = item.status === 'VERIFIED';
+            const isWaiting = item.status === 'WAITING_VERIFICATION';
+            const isNext = item.weekNumber === nextUnpaidLedger?.weekNumber;
+
+            return (
+              <div
+                key={item.id}
+                className={`p-3 rounded-2xl border text-center transition-all flex flex-col justify-between ${
+                  isVerified
+                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
+                    : isWaiting
+                    ? 'bg-amber-950/25 border-amber-500/40 text-amber-300'
+                    : isNext
+                    ? 'bg-slate-900 border-amber-400 shadow-md ring-1 ring-amber-400/40'
+                    : 'bg-slate-950/40 border-white/5 text-slate-400'
+                }`}
+              >
+                <div className="text-[10px] font-bold text-slate-300">Mg-{item.weekNumber}</div>
+                <div className="my-1.5 flex items-center justify-center">
+                  {isVerified && (
+                    <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-400">
+                      <Check className="w-4 h-4 stroke-[3]" />
+                    </div>
+                  )}
+                  {isWaiting && (
+                    <div className="p-1 rounded-full bg-amber-400/20 text-amber-300">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                  )}
+                  {!isVerified && !isWaiting && (
+                    <div className="text-xs font-mono text-slate-500">
+                      Rp {(item.amount / 1000).toFixed(0)}k
+                    </div>
+                  )}
+                </div>
+                <div>
+                  {isVerified ? (
+                    <span className="text-[9px] font-extrabold text-emerald-400 uppercase tracking-wider">Lunas ✓</span>
+                  ) : isWaiting ? (
+                    <span className="text-[9px] font-bold text-amber-300">Diproses</span>
+                  ) : (
+                    <button
+                      onClick={() => handleOpenUpload(item)}
+                      className="w-full py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[10px] transition-colors"
+                    >
+                      Cek-in
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -172,7 +274,7 @@ export default function NasabahDashboardPage() {
               href="/tabunganku"
               className="text-xs text-emerald-400 font-semibold hover:underline flex items-center space-x-1"
             >
-              <span>Lihat Detail 50 Minggu</span>
+              <span>Buka Kartu Absen 50 Minggu</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
