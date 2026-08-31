@@ -632,27 +632,85 @@ Sesuai panduan **UI/UX Pro Max** dan **Mobile & Tablet First Priority**:
 ```
 
 #### 1. Visual Design & Theme System (UI/UX Pro Max)
-- **Design Style:** Modern Clean Glassmorphism dengan aksen Keberkahan & Kemakmuran.
+- **Design Style:** Modern Clean Glassmorphism dengan aksen Keberkahan, Kemakmuran, dan Depth Layer 3D.
 - **Color Palette:**
-  - *Primary Emerald:* `hsl(158, 64%, 28%)` (#0F5132) & `hsl(160, 84%, 39%)` (#059669) — Melambangkan ketenangan, keberkahan finansial, dan identitas Idul Fitri.
-  - *Accent Warm Gold:* `hsl(38, 92%, 50%)` (#F59E0B) & `hsl(32, 95%, 44%)` (#D97706) — Melambangkan tabungan bernilai dan hadiah Hari Raya.
+  - *Primary Emerald:* `hsl(158, 64%, 28%)` (#0F5132) & `hsl(160, 84%, 39%)` (#059669) — Melambangkan ketenangan, keberkahan finansial, dan nuansa Idul Fitri.
+  - *Accent Warm Gold:* `hsl(38, 92%, 50%)` (#F59E0B) & `hsl(32, 95%, 44%)` (#D97706) — Melambangkan nilai tabungan dan kemilau Hari Raya.
   - *Background Dark:* `hsl(222, 47%, 11%)` (#0B0F17) / Surface: `hsl(217, 33%, 17%)` (#1E293B).
   - *Background Light:* `hsl(210, 40%, 98%)` (#F8FAFC) / Surface: `hsl(0, 0%, 100%)` (#FFFFFF).
 - **Typography:** **Plus Jakarta Sans** (Primary Heading & Body) dipadukan dengan font angka tabular monospaced untuk rincian nominal keuangan.
 - **Icons:** Resmi menggunakan **Lucide React SVG Icons** (Bebas emoji di UI).
 
-#### 2. Public High-Conversion Landing Page Structure
-1. **Hero Section:** Headline emosional *"Lebaran Tenang Tanpa Pusing Biaya: Nabung 100rb per Minggu, Panen Berkah & Paket Sembako di Hari Raya"*, dilengkapi call-to-action (CTA) mencolok *"Mulai Menabung Sekarang"* dan visual mockup interaktif.
-2. **Interactive Savings & Hampers Calculator:**
-   - Slider nominal mingguan (Rp 25.000 s.d. Rp 500.000).
-   - Selector paket barang (Sembako Premium, Kue Kaleng, Perabot Dapur).
-   - Hasil kalkulasi visual instan: Total Saldo di H-1, Nilai Paket Barang, Estimasi Dana Tunai yang Dibawa Pulang.
-3. **Showcase Paket Barang Lebaran:** Carousel interaktif berisi foto barang berkualitas tinggi (Daging sapi segar, Minyak goreng, Telur, Kue kaleng premium, Set perabotan dapur).
-4. **Alur Transparan (Timeline Visualizer):** Infografis visual perjalanan 50 minggu dari H+1 Idul Fitri hingga H-1 Idul Fitri berikutnya.
-5. **Fitur Emergency Withdrawal Explainer:** Penjelasan transparan hak penarikan darurat maksimal Rp 500.000 (1x) tanpa potongan penalti.
-6. **Social Proof, Trust Badges, & FAQ Interaktif:** Testimoni nasabah, garansi transparansi kas, dan akordeon FAQ.
+---
 
-#### 3. Nasabah PWA Experience
+#### 2. Interactive 3D Motion & Visual Experience System
+
+Untuk memberikan impresi visual kelas dunia (*wow-factor*) yang memikat calon nasabah, landing page dilengkapi sistem motion 3D dan animasi interaktif:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        3D MOTION & INTERACTIVE EXPERIENCE MATRIX                       │
+├──────────────────────────────┬─────────────────────────────────────────────────────────┤
+│ 1. 3D Hero Centerpiece       │ - Model 3D Celengan Kubah Emas / Ketupat Kristal 3D     │
+│    (Three.js / React Three)  │ - Interaktif mengapung (float) & merespons kursor mouse │
+│                              │ - Hamburan partikel koin emas saat CTA di-hover         │
+├──────────────────────────────┼─────────────────────────────────────────────────────────┤
+│ 2. 3D Parallax Tilt Cards    │ - Efek tilt 3D dinamis pada kartu katalog sembako & kue │
+│    (Framer Motion Physics)   │ - Efek pantulan cahaya kaca (glare reflection)          │
+│                              │ - Foto produk melayang terpisah (depth layer effect)    │
+├──────────────────────────────┼─────────────────────────────────────────────────────────┤
+│ 3. SVG Timeline Scroll Path  │ - Kurva SVG emas bercahaya yang otomatis tergambar      │
+│    (Scroll-Driven Animation) │   seiring scroll dari H+1 Idul Fitri ke H-1 Idul Fitri  │
+│                              │ - Pulse glow wave pada milestone minggu 1, 25, 48, 50   │
+├──────────────────────────────┼─────────────────────────────────────────────────────────┤
+│ 4. Sliding Number Calculator │ - Counter angka dinamis saat menggeser nominal mingguan │
+│    (@animate-ui)             │ - Spring physics animation pada cincin target tabungan  │
+├──────────────────────────────┼─────────────────────────────────────────────────────────┤
+│ 5. Interactive Parcel Builder│ - Drag & drop simulator sembako (daging, minyak, kue)   │
+│    (Gamified UX)             │ - Rekomendasi nominal nabung mingguan otomatis          │
+└──────────────────────────────┴─────────────────────────────────────────────────────────┘
+```
+
+##### Detail Komponen Interaktif:
+1. **Hero 3D Interactive Centerpiece (`@react-three/fiber` & `@react-three/drei`):**
+   - Objek 3D *Celengan Emas Berkah* yang berputar halus (*idle rotation*).
+   - Di Desktop: Merespons arah kursor mouse dengan sudut kemiringan hingga 15 derajat.
+   - Di Mobile/Tablet: Merespons *gyroscope device tilt* atau touch swipe ringan.
+   - Efek *ambient glow* dan *subtle floating golden sparkles* di latar belakang canvas.
+2. **Interactive Savings & Hampers Calculator with Sliding Numbers:**
+   - Slider nominal mingguan (Rp 25.000 s.d. Rp 500.000) menggunakan `@radix-ui/react-slider`.
+   - Transisi perubahan angka menggunakan `@animate-ui/primitives-texts-sliding-number` dengan efek digit berputar vertikal (*slot machine count-up*).
+   - Tampilan visual tumpukan koin 3D yang bertambah tinggi secara elastis sesuai nominal yang dipilih.
+3. **Interactive Parcel Builder ("Rakit Parcel Lebaran Impian"):**
+   - Calon nasabah dapat memilih/klik item sembako & snack (Daging Sapi 1kg, Minyak 2L, Telur 1 tray, Biskuit Kaleng, Set Toples Kaca) ke dalam keranjang virtual.
+   - Algoritma menghitung otomatis: *"Cukup menabung **Rp 35.000 / minggu** untuk mendapatkan paket ini di H-1 Idul Fitri!"*.
+4. **Interactive 50-Week Timeline Visualizer:**
+   - Garis kurva SVG bercahaya emas yang tersambung dari Minggu 1 (H+1 Lebaran) hingga Minggu 50 (H-1 Lebaran).
+   - Menggunakan Framer Motion `useScroll` dan `useTransform` untuk menganimasikan `pathLength` dari 0 ke 1 seiring halaman di-scroll ke bawah.
+5. **Emergency Withdrawal Safety Shield:**
+   - Animasi interaktif perisai keamanan yang mendemonstrasikan saldo tetap aman dan dapat dicairkan hingga Rp 500.000 (1x) tanpa potongan komisi penalti.
+6. **Live Social Proof & Countdown Ticker:**
+   - Hitung mundur *real-time* ke H-1 Idul Fitri tahun berikutnya (Hari : Jam : Menit : Detik).
+   - Floating toast transparan di sudut layar: *"Ibu Nurul baru saja mendaftar Paket Berkah 100k (2 menit yang lalu)"*.
+
+---
+
+#### 3. Performance, 60 FPS Budget & Battery Optimization Guardrails
+
+Agar efek 3D dan animasi tetap sangat ringan, hemat baterai, dan responsif di semua perangkat:
+
+1. **Intersection Observer Auto-Pause:** Canvas Three.js dan loop animasi partikel otomatis di-*pause* saat elemen berada di luar viewport layar pengguna.
+2. **Graceful Fallback for Low-End Devices & Mobile:** Jika terdeteksi GPU terbatas atau framerate drop di bawah 45 FPS, sistem otomatis mendowngrade animasi 3D ke **CSS 3D Transforms + SVG Lottie Animation** yang super ringan.
+3. **Reduced Motion Accessibility:** Mendukung preferensi sistem `@media (prefers-reduced-motion: reduce)` dengan mengganti animasi berputar menjadi transisi *subtle fade-in*.
+4. **Lighthouse Performance Targets:** Memastikan skor Google Lighthouse Landing Page:
+   - **Performance:** $\ge 90$
+   - **First Contentful Paint (FCP):** $< 1.2\text{ detik}$
+   - **Largest Contentful Paint (LCP):** $< 2.0\text{ detik}$
+   - **Cumulative Layout Shift (CLS):** $< 0.05$ (Bebas layout shift saat aset 3D dimuat).
+
+---
+
+#### 4. Nasabah PWA Experience
 - **Mobile-First Tab Bar:** Beranda, Tabunganku, Katalog Paket, Penarikan, Profil.
 - **Visual Milestone Tracker:** Circular progress ring & strip 50 kartu mingguan dengan badge status (`Lunas`, `Menunggu Verifikasi`, `Belum Bayar`).
 - **Emergency Withdrawal Modal:** Form penarikan dengan real-time validator guard yang otomatis mendisable tombol submit jika saldo kurang atau sudah pernah menarik Rp 500.000.
