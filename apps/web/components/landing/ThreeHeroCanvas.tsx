@@ -2,124 +2,47 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, Sparkles, RoundedBox } from '@react-three/drei';
+import { Sparkles, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Vertically-Oriented Spinning Gold Coin (Spins like a real coin on its edge!)
-function SpinningGoldCoin({
-  radius = 3.2,
-  speed = 0.6,
-  yOffset = 0,
-  phase = 0,
-  scale = 0.6,
-}: {
-  radius?: number;
-  speed?: number;
-  yOffset?: number;
-  phase?: number;
-  scale?: number;
-}) {
-  const orbitGroup = useRef<THREE.Group>(null);
-  const spinMesh = useRef<THREE.Group>(null);
-
-  useFrame((state, delta) => {
-    // 1. Orbit around the center scene
-    if (orbitGroup.current) {
-      const t = state.clock.getElapsedTime() * speed + phase;
-      orbitGroup.current.position.x = Math.cos(t) * radius;
-      orbitGroup.current.position.z = Math.sin(t) * radius;
-      orbitGroup.current.position.y = yOffset + Math.sin(t * 2.5) * 0.25;
-    }
-    // 2. Continuous 3D vertical coin spin (showing both faces & star emblem)
-    if (spinMesh.current) {
-      spinMesh.current.rotation.y += delta * 3.5;
-    }
-  });
-
-  return (
-    <group ref={orbitGroup} scale={scale}>
-      <group ref={spinMesh}>
-        {/* Coin Cylinder standing vertically */}
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.38, 0.38, 0.08, 32]} />
-          <meshStandardMaterial
-            color="#FFE066"
-            metalness={0.94}
-            roughness={0.1}
-            emissive="#D97706"
-            emissiveIntensity={0.35}
-          />
-        </mesh>
-        {/* Front Emboss */}
-        <mesh position={[0, 0, 0.045]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.28, 0.28, 0.02, 32]} />
-          <meshStandardMaterial color="#FFB800" metalness={0.9} roughness={0.15} />
-        </mesh>
-        {/* Front Star */}
-        <mesh position={[0, 0, 0.06]}>
-          <octahedronGeometry args={[0.13, 0]} />
-          <meshStandardMaterial color="#FFFBEB" metalness={0.98} roughness={0.05} />
-        </mesh>
-        {/* Back Emboss */}
-        <mesh position={[0, 0, -0.045]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.28, 0.28, 0.02, 32]} />
-          <meshStandardMaterial color="#FFB800" metalness={0.9} roughness={0.15} />
-        </mesh>
-        {/* Back Star */}
-        <mesh position={[0, 0, -0.06]}>
-          <octahedronGeometry args={[0.13, 0]} />
-          <meshStandardMaterial color="#FFFBEB" metalness={0.98} roughness={0.05} />
-        </mesh>
-      </group>
-    </group>
-  );
-}
-
 // =========================================================================
-// 1. DOMPET BERKAH (Floating & Spinning Emerald Wallet)
+// 1. DOMPET BERKAH WITH POP-OUT MONEY & COINS ANIMATION
 // =========================================================================
 function DompetBerkah({
   position,
   mousePos,
-  isWobbling,
+  isPopped,
   onClick,
 }: {
   position: [number, number, number];
   mousePos: { x: number; y: number };
-  isWobbling: boolean;
+  isPopped: boolean;
   onClick: (e: any) => void;
 }) {
   const groupRef = useRef<THREE.Group>(null);
-  const spinAngle = useRef(0);
+  const popProgress = useRef(0);
 
   useFrame((state, delta) => {
+    // Animate pop progress (0 = resting inside, 1 = exploded/fanned out)
+    if (isPopped) {
+      popProgress.current = THREE.MathUtils.lerp(popProgress.current, 1, delta * 8);
+    } else {
+      popProgress.current = THREE.MathUtils.lerp(popProgress.current, 0, delta * 5);
+    }
+
     if (groupRef.current) {
       const t = state.clock.getElapsedTime();
-      // Independent gentle vertical floating
-      groupRef.current.position.y = position[1] + Math.sin(t * 2 + 1.2) * 0.14;
-
-      if (isWobbling) {
-        // Fast 360 Full Pirouette Spin on Click!
-        spinAngle.current += delta * 16;
-        groupRef.current.rotation.y = spinAngle.current;
-        groupRef.current.scale.setScalar(0.95 + Math.sin(t * 25) * 0.1);
-      } else {
-        // Smooth continuous 3D rotating sway + mouse look-at
-        const targetYaw = -0.3 + Math.sin(t * 1.2) * 0.35 + mousePos.x * 0.25;
-        groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetYaw, 0.08);
-        groupRef.current.rotation.x = THREE.MathUtils.lerp(
-          groupRef.current.rotation.x,
-          0.15 + Math.cos(t * 1.0) * 0.1 - mousePos.y * 0.15,
-          0.08
-        );
-        groupRef.current.rotation.z = Math.sin(t * 1.4) * 0.08;
-        groupRef.current.scale.setScalar(0.82);
-      }
+      // Gentle bob
+      groupRef.current.position.y = position[1] + Math.sin(t * 2 + 1.2) * 0.1;
+      // Continuous 360 spin + mouse parallax
+      groupRef.current.rotation.y += delta * 0.5;
     }
   });
 
+  const p = popProgress.current;
+
   return (
-    <group ref={groupRef} position={position} onClick={onClick}>
+    <group ref={groupRef} position={position} onClick={onClick} scale={0.88}>
       {/* Wallet Outer Leather */}
       <RoundedBox args={[1.2, 0.82, 0.45]} radius={0.15} smoothness={4} position={[0, 0, 0]}>
         <meshStandardMaterial
@@ -148,26 +71,111 @@ function DompetBerkah({
         <meshStandardMaterial color="#FCD34D" metalness={0.95} roughness={0.1} />
       </mesh>
 
-      {/* Fanned Banknotes */}
-      <group position={[0, 0.48, 0]} rotation={[-0.15, 0.15, 0.08]}>
-        {/* Green 20k/100k */}
-        <mesh position={[-0.18, 0, 0]} rotation={[0, 0, -0.15]}>
-          <boxGeometry args={[0.85, 0.5, 0.02]} />
-          <meshStandardMaterial color="#10B981" roughness={0.5} />
-        </mesh>
-        {/* Blue 50k */}
-        <mesh position={[0.12, 0.06, -0.04]} rotation={[0, 0, 0.18]}>
-          <boxGeometry args={[0.85, 0.5, 0.02]} />
-          <meshStandardMaterial color="#3B82F6" roughness={0.5} />
-        </mesh>
-        {/* Red 100k */}
-        <mesh position={[0, 0.1, -0.08]} rotation={[0, 0, -0.04]}>
-          <boxGeometry args={[0.85, 0.5, 0.02]} />
-          <meshStandardMaterial color="#EF4444" roughness={0.5} />
+      {/* ================= MONEY POPPING OUT IN AN ARC ================= */}
+      {/* Banknote 1 (Green Rp 20.000 / 100.000) */}
+      <mesh
+        position={[-0.25 - p * 0.5, 0.45 + p * 0.8, p * 0.2]}
+        rotation={[-0.15, 0.1, -0.15 - p * 0.35]}
+      >
+        <boxGeometry args={[0.85, 0.5, 0.02]} />
+        <meshStandardMaterial
+          color="#10B981"
+          emissive="#059669"
+          emissiveIntensity={p * 0.6}
+          roughness={0.5}
+        />
+      </mesh>
+
+      {/* Banknote 2 (Blue Rp 50.000) */}
+      <mesh
+        position={[0.15 + p * 0.5, 0.5 + p * 0.85, -0.05 + p * 0.2]}
+        rotation={[-0.15, -0.1, 0.18 + p * 0.35]}
+      >
+        <boxGeometry args={[0.85, 0.5, 0.02]} />
+        <meshStandardMaterial
+          color="#3B82F6"
+          emissive="#2563EB"
+          emissiveIntensity={p * 0.6}
+          roughness={0.5}
+        />
+      </mesh>
+
+      {/* Banknote 3 (Red Rp 100.000 Top Center) */}
+      <mesh
+        position={[0, 0.55 + p * 1.15, -0.1]}
+        rotation={[-0.1, 0, 0]}
+      >
+        <boxGeometry args={[0.85, 0.5, 0.02]} />
+        <meshStandardMaterial
+          color="#EF4444"
+          emissive="#DC2626"
+          emissiveIntensity={p * 0.6}
+          roughness={0.5}
+        />
+      </mesh>
+
+      {/* Banknote 4 (Purple Rp 10.000) */}
+      <mesh
+        position={[-0.1 - p * 0.3, 0.48 + p * 0.65, 0.1]}
+        rotation={[0.1, 0.2, -0.08]}
+      >
+        <boxGeometry args={[0.75, 0.45, 0.02]} />
+        <meshStandardMaterial color="#8B5CF6" roughness={0.5} />
+      </mesh>
+
+      {/* ================= GOLD COINS FOUNTAIN FROM WALLET ================= */}
+      {/* Coin Pop 1 */}
+      <group
+        position={[0.4 + p * 0.6, 0.3 + p * 1.2, 0.3 + p * 0.3]}
+        rotation={[p * 6, p * 8, 0]}
+      >
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.2, 0.2, 0.05, 24]} />
+          <meshStandardMaterial
+            color="#FFD700"
+            metalness={0.95}
+            roughness={0.1}
+            emissive="#F59E0B"
+            emissiveIntensity={p * 0.8}
+          />
         </mesh>
       </group>
 
-      {/* Shiny Spilling Gold Coins */}
+      {/* Coin Pop 2 */}
+      <group
+        position={[-0.4 - p * 0.6, 0.3 + p * 1.0, 0.2 + p * 0.2]}
+        rotation={[p * 5, -p * 7, 0]}
+      >
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.18, 0.18, 0.05, 24]} />
+          <meshStandardMaterial
+            color="#FBBF24"
+            metalness={0.95}
+            roughness={0.1}
+            emissive="#F59E0B"
+            emissiveIntensity={p * 0.8}
+          />
+        </mesh>
+      </group>
+
+      {/* Coin Pop 3 (Top Center High) */}
+      <group
+        position={[0, 0.5 + p * 1.4, 0.1 + p * 0.4]}
+        rotation={[p * 10, p * 4, 0]}
+      >
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.22, 0.22, 0.05, 24]} />
+          <meshStandardMaterial
+            color="#FFE066"
+            metalness={0.98}
+            roughness={0.08}
+            emissive="#F59E0B"
+            emissiveIntensity={p}
+          />
+        </mesh>
+      </group>
+
+      {/* Resting front coins */}
       <group position={[0.35, -0.35, 0.35]} rotation={[0.4, 0.5, 0]}>
         <cylinderGeometry args={[0.18, 0.18, 0.04, 24]} />
         <meshStandardMaterial color="#FFD700" metalness={0.95} roughness={0.1} />
@@ -181,50 +189,43 @@ function DompetBerkah({
 }
 
 // =========================================================================
-// 2. PAKET KERANJANG SEMBAKO (Floating & Rotating Hampers Basket)
+// 2. PAKET KERANJANG SEMBAKO WITH POP-OUT ITEMS ANIMATION
 // =========================================================================
 function PaketSembakoHampers({
   position,
   mousePos,
-  isWobbling,
+  isPopped,
   onClick,
 }: {
   position: [number, number, number];
   mousePos: { x: number; y: number };
-  isWobbling: boolean;
+  isPopped: boolean;
   onClick: (e: any) => void;
 }) {
   const groupRef = useRef<THREE.Group>(null);
-  const spinAngle = useRef(0);
+  const popProgress = useRef(0);
 
   useFrame((state, delta) => {
+    // Animate pop progress (0 = resting in basket, 1 = floating/popped up)
+    if (isPopped) {
+      popProgress.current = THREE.MathUtils.lerp(popProgress.current, 1, delta * 8);
+    } else {
+      popProgress.current = THREE.MathUtils.lerp(popProgress.current, 0, delta * 5);
+    }
+
     if (groupRef.current) {
       const t = state.clock.getElapsedTime();
-      // Independent gentle vertical floating
-      groupRef.current.position.y = position[1] + Math.sin(t * 2 + 2.4) * 0.14;
-
-      if (isWobbling) {
-        // Fast 360 Full Spin on Click!
-        spinAngle.current += delta * 16;
-        groupRef.current.rotation.y = spinAngle.current;
-        groupRef.current.scale.setScalar(0.95 + Math.sin(t * 25) * 0.1);
-      } else {
-        // Smooth continuous 3D rotating sway + mouse look-at
-        const targetYaw = 0.35 + Math.sin(t * 1.1 + 1) * 0.35 + mousePos.x * 0.25;
-        groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetYaw, 0.08);
-        groupRef.current.rotation.x = THREE.MathUtils.lerp(
-          groupRef.current.rotation.x,
-          0.15 + Math.cos(t * 1.0) * 0.1 - mousePos.y * 0.15,
-          0.08
-        );
-        groupRef.current.rotation.z = Math.sin(t * 1.3) * 0.08;
-        groupRef.current.scale.setScalar(0.82);
-      }
+      // Gentle bob
+      groupRef.current.position.y = position[1] + Math.sin(t * 2 + 2.4) * 0.1;
+      // Continuous 360 spin
+      groupRef.current.rotation.y += delta * 0.5;
     }
   });
 
+  const p = popProgress.current;
+
   return (
-    <group ref={groupRef} position={position} onClick={onClick}>
+    <group ref={groupRef} position={position} onClick={onClick} scale={0.88}>
       {/* Woven Basket Base */}
       <mesh position={[0, -0.22, 0]}>
         <cylinderGeometry args={[0.85, 0.65, 0.58, 32]} />
@@ -242,20 +243,33 @@ function PaketSembakoHampers({
         <meshStandardMaterial color="#B45309" roughness={0.7} />
       </mesh>
 
-      {/* 1. Mini Rice Sack */}
-      <group position={[-0.32, 0.35, -0.15]} rotation={[0.1, 0.3, -0.1]}>
+      {/* ================= ITEMS POPPING UP & EXPANDING OUTWARD ================= */}
+      {/* 1. Karung Beras 5KG (Shoots up-left) */}
+      <group
+        position={[-0.32 - p * 0.55, 0.35 + p * 0.95, -0.15 + p * 0.2]}
+        rotation={[0.1 + p * 0.3, 0.3 + p * 0.5, -0.1 - p * 0.3]}
+      >
         <mesh>
           <capsuleGeometry args={[0.26, 0.45, 16, 16]} />
-          <meshStandardMaterial color="#FEF3C7" roughness={0.6} />
+          <meshStandardMaterial
+            color="#FEF3C7"
+            roughness={0.5}
+            emissive="#FDE68A"
+            emissiveIntensity={p * 0.4}
+          />
         </mesh>
+        {/* Green Label */}
         <mesh position={[0, 0, 0.25]}>
           <planeGeometry args={[0.3, 0.2]} />
           <meshBasicMaterial color="#059669" />
         </mesh>
       </group>
 
-      {/* 2. Cooking Oil Bottle */}
-      <group position={[0.35, 0.42, -0.1]} rotation={[-0.1, -0.2, 0.1]}>
+      {/* 2. Botol Minyak Goreng (Shoots up-right) */}
+      <group
+        position={[0.35 + p * 0.6, 0.42 + p * 1.05, -0.1 + p * 0.2]}
+        rotation={[-0.1 - p * 0.3, -0.2 + p * 0.6, 0.1 + p * 0.4]}
+      >
         <mesh>
           <cylinderGeometry args={[0.18, 0.18, 0.55, 24]} />
           <meshStandardMaterial
@@ -263,9 +277,9 @@ function PaketSembakoHampers({
             roughness={0.1}
             metalness={0.3}
             transparent
-            opacity={0.88}
+            opacity={0.92}
             emissive="#EAB308"
-            emissiveIntensity={0.3}
+            emissiveIntensity={0.35 + p * 0.5}
           />
         </mesh>
         <mesh position={[0, 0.32, 0]}>
@@ -274,11 +288,20 @@ function PaketSembakoHampers({
         </mesh>
       </group>
 
-      {/* 3. Red Cookie/Biscuit Tin */}
-      <group position={[0.25, 0.18, 0.32]} rotation={[0, 0.4, 0]}>
+      {/* 3. Kaleng Biskuit Merah (Shoots up-center high) */}
+      <group
+        position={[0.25 - p * 0.2, 0.18 + p * 1.25, 0.32 - p * 0.2]}
+        rotation={[p * 0.4, 0.4 + p * 3, p * 0.2]}
+      >
         <mesh>
           <boxGeometry args={[0.42, 0.38, 0.42]} />
-          <meshStandardMaterial color="#B91C1C" metalness={0.65} roughness={0.25} />
+          <meshStandardMaterial
+            color="#B91C1C"
+            metalness={0.65}
+            roughness={0.25}
+            emissive="#EF4444"
+            emissiveIntensity={p * 0.4}
+          />
         </mesh>
         <mesh position={[0, 0.2, 0]}>
           <boxGeometry args={[0.44, 0.05, 0.44]} />
@@ -286,23 +309,31 @@ function PaketSembakoHampers({
         </mesh>
       </group>
 
-      {/* 4. Fresh Eggs in Front */}
-      <group position={[-0.25, 0.15, 0.38]}>
-        <mesh position={[-0.1, 0, 0]} scale={[0.8, 1.1, 0.8]}>
+      {/* 4. Fresh Eggs (Float & Spin in front) */}
+      <group position={[-0.25 - p * 0.3, 0.15 + p * 0.75, 0.38 + p * 0.4]}>
+        <mesh position={[-0.1, 0, 0]} scale={[0.8, 1.1, 0.8]} rotation={[p * 2, 0, 0]}>
           <sphereGeometry args={[0.12, 16, 16]} />
-          <meshStandardMaterial color="#D97706" roughness={0.5} />
+          <meshStandardMaterial color="#D97706" roughness={0.4} />
         </mesh>
-        <mesh position={[0.1, 0, 0]} scale={[0.8, 1.1, 0.8]}>
+        <mesh position={[0.1, 0, 0]} scale={[0.8, 1.1, 0.8]} rotation={[0, p * 2, 0]}>
           <sphereGeometry args={[0.12, 16, 16]} />
-          <meshStandardMaterial color="#D97706" roughness={0.5} />
+          <meshStandardMaterial color="#D97706" roughness={0.4} />
         </mesh>
       </group>
 
-      {/* 5. Mini Ketupat */}
-      <group position={[-0.6, 0.15, 0.45]} rotation={[0, 0, Math.PI / 4]} scale={0.45}>
+      {/* 5. Mini Ketupat (Floats high spinning) */}
+      <group
+        position={[-0.6 - p * 0.4, 0.15 + p * 1.1, 0.45 + p * 0.3]}
+        rotation={[0, p * 4, Math.PI / 4 + p * 2]}
+        scale={0.45 + p * 0.2}
+      >
         <mesh>
           <boxGeometry args={[0.45, 0.45, 0.2]} />
-          <meshStandardMaterial color="#10B981" emissive="#047857" emissiveIntensity={0.3} />
+          <meshStandardMaterial
+            color="#10B981"
+            emissive="#047857"
+            emissiveIntensity={0.3 + p * 0.5}
+          />
         </mesh>
       </group>
     </group>
@@ -310,70 +341,57 @@ function PaketSembakoHampers({
 }
 
 // =========================================================================
-// 3. CELENGAN AYAM JAGO EMAS IMUT (Chibi Golden Rooster with Smooth 3D Spin)
+// 3. CELENGAN AYAM JAGO EMAS WITH COIN FOUNTAIN POP ANIMATION
 // =========================================================================
 function CuteCelenganAyam({
+  position,
   mousePos,
-  isWobbling,
+  isPopped,
   onClick,
 }: {
+  position: [number, number, number];
   mousePos: { x: number; y: number };
-  isWobbling: boolean;
+  isPopped: boolean;
   onClick: (e: any) => void;
 }) {
   const ayamRef = useRef<THREE.Group>(null);
-  const coinTopMesh = useRef<THREE.Group>(null);
   const wingLRef = useRef<THREE.Group>(null);
   const wingRRef = useRef<THREE.Group>(null);
-  const spinAngle = useRef(0);
+  const popProgress = useRef(0);
 
   useFrame((state, delta) => {
+    // Pop progress
+    if (isPopped) {
+      popProgress.current = THREE.MathUtils.lerp(popProgress.current, 1, delta * 8);
+    } else {
+      popProgress.current = THREE.MathUtils.lerp(popProgress.current, 0, delta * 5);
+    }
+
     if (ayamRef.current) {
       const t = state.clock.getElapsedTime();
-      // Gentle vertical floating bob
-      ayamRef.current.position.y = 0.15 + Math.sin(t * 2) * 0.14;
-
-      if (isWobbling) {
-        // Fast 360 Pirouette Spin on Click!
-        spinAngle.current += delta * 16;
-        ayamRef.current.rotation.y = spinAngle.current;
-        ayamRef.current.scale.setScalar(0.98 + Math.sin(t * 25) * 0.08);
-      } else {
-        // Continuous smooth 3D rotating yaw (smooth turntable showcase) + mouse tracking
-        const targetYaw = Math.sin(t * 0.9) * 0.4 + mousePos.x * 0.35;
-        ayamRef.current.rotation.y = THREE.MathUtils.lerp(ayamRef.current.rotation.y, targetYaw, 0.08);
-        ayamRef.current.rotation.x = THREE.MathUtils.lerp(
-          ayamRef.current.rotation.x,
-          Math.sin(t * 0.7) * 0.08 - mousePos.y * 0.2,
-          0.08
-        );
-        ayamRef.current.rotation.z = Math.sin(t * 1.2) * 0.06;
-        ayamRef.current.scale.setScalar(0.86);
-      }
+      // Gentle floating bob
+      ayamRef.current.position.y = position[1] + Math.sin(t * 2) * 0.12 + popProgress.current * 0.3;
+      // Continuous 360 spin showcase
+      ayamRef.current.rotation.y += delta * 0.5;
     }
 
-    // Wings Flutter
+    // Wings Flutter on click
     if (wingLRef.current && wingRRef.current) {
       const t = state.clock.getElapsedTime();
-      if (isWobbling) {
-        wingLRef.current.rotation.z = -0.3 + Math.sin(t * 40) * 0.5;
-        wingRRef.current.rotation.z = 0.3 - Math.sin(t * 40) * 0.5;
+      if (isPopped) {
+        wingLRef.current.rotation.z = -0.3 + Math.sin(t * 40) * 0.6;
+        wingRRef.current.rotation.z = 0.3 - Math.sin(t * 40) * 0.6;
       } else {
-        wingLRef.current.rotation.z = -0.3 + Math.sin(t * 3) * 0.1;
-        wingRRef.current.rotation.z = 0.3 - Math.sin(t * 3) * 0.1;
+        wingLRef.current.rotation.z = -0.3 + Math.sin(t * 3) * 0.08;
+        wingRRef.current.rotation.z = 0.3 - Math.sin(t * 3) * 0.08;
       }
-    }
-
-    // Vertically Spinning Floating Gold Coin above Slot!
-    if (coinTopMesh.current) {
-      const t = state.clock.getElapsedTime();
-      coinTopMesh.current.position.y = 1.62 + Math.sin(t * 3.5) * 0.12;
-      coinTopMesh.current.rotation.y += delta * 3.5;
     }
   });
 
+  const p = popProgress.current;
+
   return (
-    <group ref={ayamRef} position={[0, 0.15, 0.25]} onClick={onClick}>
+    <group ref={ayamRef} position={position} onClick={onClick} scale={0.9}>
       {/* ================= A. CHIBI GOLDEN BODY ================= */}
       <mesh position={[0, 0, 0]} scale={[0.9, 0.85, 0.95]}>
         <sphereGeometry args={[0.95, 48, 48]} />
@@ -400,7 +418,6 @@ function CuteCelenganAyam({
 
       {/* ================= B. HEAD & FACE ================= */}
       <group position={[0, 0.68, 0.45]}>
-        {/* Head Sphere */}
         <mesh scale={[0.95, 0.95, 0.95]}>
           <sphereGeometry args={[0.55, 32, 32]} />
           <meshStandardMaterial
@@ -412,7 +429,7 @@ function CuteCelenganAyam({
           />
         </mesh>
 
-        {/* Rooster Comb (Jengger Merah) */}
+        {/* Rooster Comb */}
         <group position={[0, 0.58, -0.05]} rotation={[-0.1, 0, 0]}>
           <mesh position={[0, 0.14, 0]} scale={[0.18, 0.4, 0.35]}>
             <sphereGeometry args={[0.45, 24, 24]} />
@@ -428,7 +445,7 @@ function CuteCelenganAyam({
           </mesh>
         </group>
 
-        {/* Small Orange Beak */}
+        {/* Orange Beak */}
         <mesh position={[0, -0.06, 0.58]} rotation={[Math.PI / 2, 0, 0]}>
           <coneGeometry args={[0.16, 0.36, 24]} />
           <meshStandardMaterial color="#F97316" metalness={0.2} roughness={0.25} />
@@ -531,14 +548,14 @@ function CuteCelenganAyam({
         </mesh>
       </group>
 
-      {/* ================= E. COIN SLOT & VERTICALLY SPINNING TOP COIN ================= */}
+      {/* ================= E. COIN SLOT & COIN FOUNTAIN ================= */}
       <mesh position={[0, 0.98, -0.15]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[0.65, 0.12]} />
         <meshBasicMaterial color="#451A03" />
       </mesh>
 
-      {/* Floating Vertically Oriented Spinning Gold Coin */}
-      <group ref={coinTopMesh} position={[0, 1.62, -0.15]}>
+      {/* Main Center Floating Coin */}
+      <group position={[0, 1.55 + p * 0.8, -0.15]} rotation={[0, p * 12, 0]}>
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <cylinderGeometry args={[0.35, 0.35, 0.08, 32]} />
           <meshStandardMaterial
@@ -546,7 +563,7 @@ function CuteCelenganAyam({
             metalness={0.95}
             roughness={0.1}
             emissive="#F59E0B"
-            emissiveIntensity={0.35}
+            emissiveIntensity={0.35 + p * 0.6}
           />
         </mesh>
         <mesh position={[0, 0, 0.045]} rotation={[Math.PI / 2, 0, 0]}>
@@ -557,13 +574,39 @@ function CuteCelenganAyam({
           <octahedronGeometry args={[0.13, 0]} />
           <meshStandardMaterial color="#FFFBEB" metalness={0.98} roughness={0.05} />
         </mesh>
-        <mesh position={[0, 0, -0.045]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.26, 0.26, 0.02, 32]} />
-          <meshStandardMaterial color="#FBBF24" metalness={0.9} roughness={0.15} />
+      </group>
+
+      {/* Coin Fountain Particle Left */}
+      <group
+        position={[-p * 0.6, 1.3 + p * 1.3, -0.15 + p * 0.3]}
+        rotation={[p * 8, p * 6, 0]}
+      >
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.22, 0.22, 0.05, 24]} />
+          <meshStandardMaterial
+            color="#FFD700"
+            metalness={0.95}
+            roughness={0.1}
+            emissive="#F59E0B"
+            emissiveIntensity={p}
+          />
         </mesh>
-        <mesh position={[0, 0, -0.06]}>
-          <octahedronGeometry args={[0.13, 0]} />
-          <meshStandardMaterial color="#FFFBEB" metalness={0.98} roughness={0.05} />
+      </group>
+
+      {/* Coin Fountain Particle Right */}
+      <group
+        position={[p * 0.6, 1.3 + p * 1.3, -0.15 - p * 0.3]}
+        rotation={[p * 6, -p * 8, 0]}
+      >
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.22, 0.22, 0.05, 24]} />
+          <meshStandardMaterial
+            color="#FFD700"
+            metalness={0.95}
+            roughness={0.1}
+            emissive="#F59E0B"
+            emissiveIntensity={p}
+          />
         </mesh>
       </group>
 
@@ -593,33 +636,127 @@ function CuteCelenganAyam({
 }
 
 // =========================================================================
-// MAIN 3D CANVAS COMPONENT
+// 4. MAIN 360 ROTATING CAROUSEL DIORAMA
+// =========================================================================
+function CarouselDiorama({
+  mousePos,
+  isAyamPopped,
+  isWalletPopped,
+  isSembakoPopped,
+  triggerAyam,
+  triggerWallet,
+  triggerSembako,
+}: {
+  mousePos: { x: number; y: number };
+  isAyamPopped: boolean;
+  isWalletPopped: boolean;
+  isSembakoPopped: boolean;
+  triggerAyam: (e?: any) => void;
+  triggerWallet: (e?: any) => void;
+  triggerSembako: (e?: any) => void;
+}) {
+  const carouselRef = useRef<THREE.Group>(null);
+
+  useFrame((state, delta) => {
+    if (carouselRef.current) {
+      // Continuous 360-degree circular turntable rotation!
+      carouselRef.current.rotation.y += delta * 0.38;
+
+      // Mouse Parallax tilt
+      carouselRef.current.rotation.x = THREE.MathUtils.lerp(
+        carouselRef.current.rotation.x,
+        0.1 - mousePos.y * 0.18,
+        0.06
+      );
+      carouselRef.current.rotation.z = THREE.MathUtils.lerp(
+        carouselRef.current.rotation.z,
+        -mousePos.x * 0.12,
+        0.06
+      );
+    }
+  });
+
+  return (
+    <group ref={carouselRef} position={[0, 0, 0]}>
+      {/* 1. GLOWING 3D GOLDEN CAROUSEL PEDESTAL (Piringan Platform Melingkar 360) */}
+      <mesh position={[0, -1.35, 0]}>
+        <cylinderGeometry args={[2.8, 3.0, 0.18, 64]} />
+        <meshStandardMaterial
+          color="#064E3B"
+          metalness={0.4}
+          roughness={0.3}
+          emissive="#047857"
+          emissiveIntensity={0.45}
+        />
+      </mesh>
+      {/* Glowing Gold Ring around Pedestal */}
+      <mesh position={[0, -1.24, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[2.7, 2.85, 64]} />
+        <meshStandardMaterial
+          color="#F59E0B"
+          metalness={0.95}
+          roughness={0.1}
+          emissive="#FBBF24"
+          emissiveIntensity={0.6}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* 2. CELENGAN AYAM JAGO EMAS (Posisi 0 Derajat Depan/Tengah) */}
+      <CuteCelenganAyam
+        position={[0, 0.15, 1.4]}
+        mousePos={mousePos}
+        isPopped={isAyamPopped}
+        onClick={triggerAyam}
+      />
+
+      {/* 3. DOMPET BERKAH (Posisi 120 Derajat Kiri-Belakang) */}
+      <DompetBerkah
+        position={[-1.6, -0.2, -0.9]}
+        mousePos={mousePos}
+        isPopped={isWalletPopped}
+        onClick={triggerWallet}
+      />
+
+      {/* 4. PAKET KERANJANG SEMBAKO (Posisi 240 Derajat Kanan-Belakang) */}
+      <PaketSembakoHampers
+        position={[1.6, -0.2, -0.9]}
+        mousePos={mousePos}
+        isPopped={isSembakoPopped}
+        onClick={triggerSembako}
+      />
+    </group>
+  );
+}
+
+// =========================================================================
+// MAIN CANVAS CONTAINER
 // =========================================================================
 export const ThreeHeroCanvas: React.FC = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [hasWebGL, setHasWebGL] = useState(true);
 
-  // Individual click wobble animations
-  const [isAyamWobbling, setIsAyamWobbling] = useState(false);
-  const [isWalletWobbling, setIsWalletWobbling] = useState(false);
-  const [isSembakoWobbling, setIsSembakoWobbling] = useState(false);
+  // Pop-Out Explosion Animation states on Click!
+  const [isAyamPopped, setIsAyamPopped] = useState(false);
+  const [isWalletPopped, setIsWalletPopped] = useState(false);
+  const [isSembakoPopped, setIsSembakoPopped] = useState(false);
 
   const triggerAyam = (e?: any) => {
     if (e) e.stopPropagation();
-    setIsAyamWobbling(true);
-    setTimeout(() => setIsAyamWobbling(false), 900);
+    setIsAyamPopped(true);
+    setTimeout(() => setIsAyamPopped(false), 1400);
   };
 
   const triggerWallet = (e?: any) => {
     if (e) e.stopPropagation();
-    setIsWalletWobbling(true);
-    setTimeout(() => setIsWalletWobbling(false), 900);
+    setIsWalletPopped(true);
+    setTimeout(() => setIsWalletPopped(false), 1400);
   };
 
   const triggerSembako = (e?: any) => {
     if (e) e.stopPropagation();
-    setIsSembakoWobbling(true);
-    setTimeout(() => setIsSembakoWobbling(false), 900);
+    setIsSembakoPopped(true);
+    setTimeout(() => setIsSembakoPopped(false), 1400);
   };
 
   useEffect(() => {
@@ -653,50 +790,33 @@ export const ThreeHeroCanvas: React.FC = () => {
   }
 
   return (
-    <div className="relative h-[420px] w-full sm:h-[480px] lg:h-[530px] cursor-pointer select-none">
+    <div className="relative h-[430px] w-full sm:h-[490px] lg:h-[540px] cursor-pointer select-none">
       <Canvas
-        camera={{ position: [0, 0.25, 7.2], fov: 42 }}
+        camera={{ position: [0, 1.2, 6.6], fov: 45 }}
         gl={{ alpha: true, antialias: true }}
         dpr={[1, 2]}
       >
-        {/* Warm Studio Lights */}
-        <ambientLight intensity={1.4} color="#FFFDF0" />
+        {/* Warm 3-Point Studio Lighting */}
+        <ambientLight intensity={1.5} color="#FFFDF0" />
         <directionalLight position={[4, 8, 5]} intensity={2.8} color="#FFFBEB" />
         <pointLight position={[-4, -2, 2]} intensity={2.2} color="#10B981" />
         <pointLight position={[3, 3, -3.5]} intensity={3.8} color="#F59E0B" />
         <pointLight position={[-3, 4, -2.5]} intensity={2.5} color="#FCD34D" />
 
         {/* Ambient Sparkles */}
-        <Sparkles count={55} scale={7.5} size={3.8} speed={0.5} color="#FDE68A" opacity={0.85} />
-        <Sparkles count={30} scale={6.0} size={2.8} speed={0.3} color="#6EE7B7" opacity={0.7} />
+        <Sparkles count={60} scale={7.5} size={3.8} speed={0.5} color="#FDE68A" opacity={0.85} />
+        <Sparkles count={35} scale={6.0} size={2.8} speed={0.3} color="#6EE7B7" opacity={0.7} />
 
-        {/* 1. CENTERPIECE: CUTE CHIBI CELENGAN AYAM JAGO EMAS */}
-        <CuteCelenganAyam
+        {/* 360 CONTINUOUS ROTATING CAROUSEL DIORAMA */}
+        <CarouselDiorama
           mousePos={mousePos}
-          isWobbling={isAyamWobbling}
-          onClick={triggerAyam}
+          isAyamPopped={isAyamPopped}
+          isWalletPopped={isWalletPopped}
+          isSembakoPopped={isSembakoPopped}
+          triggerAyam={triggerAyam}
+          triggerWallet={triggerWallet}
+          triggerSembako={triggerSembako}
         />
-
-        {/* 2. LEFT SIDE: DOMPET BERKAH (CLICKABLE 360 SPIN!) */}
-        <DompetBerkah
-          position={[-1.9, -0.35, 0.35]}
-          mousePos={mousePos}
-          isWobbling={isWalletWobbling}
-          onClick={triggerWallet}
-        />
-
-        {/* 3. RIGHT SIDE: PAKET KERANJANG SEMBAKO (CLICKABLE 360 SPIN!) */}
-        <PaketSembakoHampers
-          position={[1.9, -0.35, 0.35]}
-          mousePos={mousePos}
-          isWobbling={isSembakoWobbling}
-          onClick={triggerSembako}
-        />
-
-        {/* Vertically-Oriented Spinning Orbiting Gold Coins (Outside the main diorama) */}
-        <SpinningGoldCoin radius={3.2} speed={0.55} yOffset={0.7} phase={0} scale={0.7} />
-        <SpinningGoldCoin radius={2.8} speed={-0.5} yOffset={-0.6} phase={Math.PI * 0.75} scale={0.6} />
-        <SpinningGoldCoin radius={3.3} speed={0.65} yOffset={1.1} phase={Math.PI * 1.5} scale={0.65} />
       </Canvas>
     </div>
   );
