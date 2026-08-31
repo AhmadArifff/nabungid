@@ -144,7 +144,7 @@ export const HeroSection: React.FC = () => {
                 <span>3D Celengan Ayam Emas, Dompet & Sembako</span>
               </div>
               <div className="absolute bottom-4 right-4 z-20 px-3 py-1 rounded-full bg-slate-950/85 border border-emerald-500/40 text-[10px] font-mono text-emerald-300 backdrop-blur-md shadow-lg shadow-black/50">
-                👆 Klik untuk Goyang • Arahkan Kursor
+                👆 Klik Ayam, Dompet, atau Keranjang!
               </div>
               <ThreeHeroCanvas />
             </div>
