@@ -237,8 +237,9 @@ nabungid/
 
 ```prisma
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -500,7 +501,75 @@ model AdminAuditLog {
 
 ---
 
-### 6.2 Backend API Contracts (`apps/api`)
+### 6.2 Supabase Infrastructure, Database Connection & Storage Architecture
+
+Infrastruktur data dan penyimpanan file NabungID terpusat pada **Supabase PostgreSQL** dan **Supabase Bucket Storage** dengan detail arsitektur berikut:
+
+#### 1. Database Connection & Connection Pooling Configuration
+
+Sistem menggunakan arsitektur dual connection (Prisma Client + PgBouncer Pooler untuk runtime transaksi tinggi, serta Direct Connection untuk Prisma Migrations):
+
+- **Shared Pooler (Transaction Mode - Port 6543):** Digunakan oleh aplikasi runtime (`apps/api` Express.js) untuk efisiensi koneksi konkuren tanpa membebani batas koneksi PostgreSQL.
+- **Direct Connection (Session Mode - Port 5432):** Digunakan untuk Prisma CLI saat menjalankan migrasi schema (`npx prisma migrate dev` / `prisma migrate deploy`).
+
+##### Parameter Koneksi Supabase:
+- **Host:** `aws-0-ap-south-1.pooler.supabase.com`
+- **Port Pooler:** `6543`
+- **Port Direct:** `5432`
+- **Database:** `postgres`
+- **User:** `postgres.ztaasxrrmfrzzplmupjh`
+- **Password:** `GHk6Npb6HahgsWH4`
+
+##### Environment Variables (`apps/api/.env`):
+```env
+# Runtime connection via PgBouncer Pooler (Port 6543)
+DATABASE_URL="postgresql://postgres.ztaasxrrmfrzzplmupjh:GHk6Npb6HahgsWH4@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# Direct connection for Prisma Migrations (Port 5432)
+DIRECT_URL="postgresql://postgres.ztaasxrrmfrzzplmupjh:GHk6Npb6HahgsWH4@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
+
+# Supabase Project API Credentials
+SUPABASE_URL="https://ztaasxrrmfrzzplmupjh.supabase.co"
+SUPABASE_ANON_KEY="<YOUR_SUPABASE_ANON_KEY>"
+SUPABASE_SERVICE_ROLE_KEY="<YOUR_SUPABASE_SERVICE_ROLE_KEY>"
+```
+
+---
+
+#### 2. Supabase Storage Architecture (File & Asset Management)
+
+Untuk mengelola dokumen, bukti transaksi, dan aset gambar visual, dibuat 4 bucket storage dengan aturan keamanan (*Row-Level Security & Access Policies*) yang ketat:
+
+| Nama Bucket | Visibilitas | Format File yang Diizinkan | Max File Size | Kebijakan Akses (RLS Policy) & Fungsi |
+| :--- | :---: | :---: | :---: | :--- |
+| **`payment-proofs`** | **Private** | `.jpg`, `.jpeg`, `.png`, `.webp`, `.pdf` | 5 MB | **Bukti Setoran Mingguan:** Nasabah hanya dapat mengunggah dan melihat bukti miliknya (`auth.uid() = user_id`). Admin memiliki akses `SELECT` dan `DELETE` penuh untuk verifikasi. |
+| **`product-assets`** | **Public** | `.jpg`, `.jpeg`, `.png`, `.webp`, `.svg` | 3 MB | **Katalog Barang & Paket:** Foto sembako mentah (daging, minyak, telur), kue kaleng, dan perabotan. Akses `SELECT` publik (Landing page/PWA), `INSERT/UPDATE/DELETE` khusus Admin. |
+| **`withdrawal-proofs`** | **Private** | `.jpg`, `.jpeg`, `.png`, `.webp`, `.pdf` | 5 MB | **Bukti Pencairan Dana Darurat:** Bukti transfer dana darurat yang diunggah oleh Admin ke Nasabah. Hanya dapat dilihat oleh Nasabah penerima dan Admin. |
+| **`avatars`** | **Public** | `.jpg`, `.jpeg`, `.png`, `.webp` | 2 MB | **Foto Profil Pengguna:** Foto identitas nasabah dan admin. Pemilik akun dapat update; publik dapat membaca. |
+
+##### Storage Helper Service (`apps/api/src/services/storage.service.ts`):
+- Menggunakan `@supabase/supabase-js` dengan `service_role` key untuk generate signed URLs berjangka waktu (untuk bucket private) dan upload file otomatis terenkripsi.
+- Kompresi gambar otomatis di sisi client/server menggunakan library WebP sebelum dikirim ke Supabase Storage untuk menghemat bandwidth.
+
+---
+
+#### 3. Supabase Agent Skills Integration
+
+Untuk mempermudah integrasi, migrasi skema otomatis, inspeksi performa query, serta manipulasi data Supabase secara akurat oleh AI tools, diimplementasikan paket **Supabase Agent Skills**:
+
+```bash
+# Perintah instalasi CLI Agent Skills Supabase
+npx skills add supabase/agent-skills
+```
+
+Fungsi modul ini mencakup:
+- Validasi sintaks SQL & RLS Policies langsung terhadap database Supabase.
+- Verifikasi index database untuk optimasi query transaksi mingguan nasabah.
+- Pembuatan dan sinkronisasi bucket storage secara otomatis via CLI script.
+
+---
+
+### 6.3 Backend API Contracts (`apps/api`)
 
 Seluruh endpoint backend mengadopsi standar **Safe Logic Flow**, **Guard Clauses**, **Result Pattern**, dan **JWT Auth Guard**.
 
@@ -516,7 +585,7 @@ Seluruh endpoint backend mengadopsi standar **Safe Logic Flow**, **Guard Clauses
 - `POST /api/v1/nasabah/enroll` — Nasabah mendaftar program tabungan & memilih paket barang (Auth Nasabah).
 - `GET /api/v1/nasabah/savings` — Mengambil riwayat & kartu status tabungan aktif milik nasabah.
 - `GET /api/v1/nasabah/savings/:id/ledger` — Mengambil rincian 50 minggu setoran, tanggal jatuh tempo, dan status verifikasi.
-- `POST /api/v1/nasabah/savings/:id/pay-week` — Upload bukti pembayaran untuk minggu tertentu.
+- `POST /api/v1/nasabah/savings/:id/pay-week` — Upload bukti pembayaran untuk minggu tertentu ke bucket `payment-proofs`.
 - `GET /api/v1/nasabah/savings/:id/simulation` — Simulasi proyeksi saldo pembagian H-1 Idul Fitri secara *real-time*.
 
 #### 3. Emergency Withdrawal Endpoints (`/api/v1/withdrawals`)
@@ -528,7 +597,7 @@ Seluruh endpoint backend mengadopsi standar **Safe Logic Flow**, **Guard Clauses
 - `GET /api/v1/admin/ledgers/pending` — Daftar setoran mingguan nasabah yang menunggu verifikasi admin.
 - `PATCH /api/v1/admin/ledgers/:id/verify` — Verifikasi atau tolak setoran mingguan nasabah.
 - `GET /api/v1/admin/withdrawals` — Daftar permohonan penarikan darurat (`PENDING_APPROVAL`).
-- `PATCH /api/v1/admin/withdrawals/:id/decision` — Approve / Reject penarikan darurat dengan upload bukti transfer.
+- `PATCH /api/v1/admin/withdrawals/:id/decision` — Approve / Reject penarikan darurat dengan upload bukti transfer ke bucket `withdrawal-proofs`.
 - `POST /api/v1/admin/distribution/calculate-batch` — Kalkulasi otomatis pembagian dana seluruh nasabah untuk H-1 Idul Fitri.
 - `PATCH /api/v1/admin/distribution/:id/disburse` — Tandai dana dan barang telah diserahkan ke nasabah.
 - `GET /api/v1/admin/reports/manifest-export` — Export data manifest pembagian ke Excel / PDF.
@@ -537,12 +606,12 @@ Seluruh endpoint backend mengadopsi standar **Safe Logic Flow**, **Guard Clauses
 - `CRUD /api/v1/admin/master/cycles` — Kelola siklus tabungan (Tahun Hijriah, Tanggal H+1, Tanggal H-1).
 - `CRUD /api/v1/admin/master/programs` — Kelola nominal tabungan (100k, 50k, custom) & biaya admin program.
 - `CRUD /api/v1/admin/master/categories` — Kelola kategori produk barang (Sembako, Kue, Perabotan).
-- `CRUD /api/v1/admin/master/items` — Kelola item produk individual (Daging, Minyak, Telur, Toples, dll).
+- `CRUD /api/v1/admin/master/items` — Kelola item produk individual (Daging, Minyak, Telur, Toples, dll) beserta upload gambar ke bucket `product-assets`.
 - `CRUD /api/v1/admin/master/bundles` — Kelola paket bundling barang & penetapan total harga paket.
 
 ---
 
-### 6.3 Frontend UX/UI Architecture (`apps/web`)
+### 6.4 Frontend UX/UI Architecture (`apps/web`)
 
 Sesuai panduan **UI/UX Pro Max** dan **Mobile & Tablet First Priority**:
 
