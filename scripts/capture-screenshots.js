@@ -24,8 +24,9 @@ async function captureAll() {
   try {
     // 1. Landing Page Hero
     console.log('📸 Capturing 01_landing_hero.png...');
-    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    await page.waitForTimeout(3000); // allow 3D canvas and animations to settle
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForSelector('h1', { state: 'visible', timeout: 30000 });
+    await page.waitForTimeout(4000); // allow 3D canvas, Framer motion, and background glow to settle
     await page.screenshot({ path: path.join(OUTPUT_DIR, '01_landing_hero.png') });
 
     // 2. Interactive Calculator Section
@@ -33,7 +34,7 @@ async function captureAll() {
     const calculatorEl = page.locator('#kalkulator');
     if (await calculatorEl.count() > 0) {
       await calculatorEl.scrollIntoViewIfNeeded();
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
       await calculatorEl.screenshot({ path: path.join(OUTPUT_DIR, '02_calculator.png') });
     } else {
       await page.screenshot({ path: path.join(OUTPUT_DIR, '02_calculator.png') });
