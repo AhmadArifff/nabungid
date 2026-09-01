@@ -1,7 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "buildCommand": "cd ../.. && npx turbo run build --filter=@nabungid/web...",
-  "outputDirectory": ".next",
-  "rootDirectory": "apps/web"
+  "buildCommand": "npx turbo run build --filter=@nabungid/web...",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs"
 }
