@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAdminStore, AttendanceMatrixMember } from '../../stores/useAdminStore';
 import { WhatsAppReminderModal } from './WhatsAppReminderModal';
+import { exportAttendanceMatrixToExcel } from '../../lib/excel-export';
 
 interface AdminAttendanceMatrixProps {
   onOpenQuickVerification?: (member: AttendanceMatrixMember, weekNumber: number) => void;
@@ -32,6 +33,16 @@ export const AdminAttendanceMatrix: React.FC<AdminAttendanceMatrixProps> = () =>
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'VERIFIED' | 'WAITING' | 'OVERDUE'>('ALL');
   const [selectedReminder, setSelectedReminder] = useState<{ member: AttendanceMatrixMember; weekNumber: number } | null>(null);
   const [toastMessage, setToastMessage] = useState('');
+
+  const handleExportExcel = () => {
+    exportAttendanceMatrixToExcel(attendanceMembers);
+    setToastMessage('Berkas Excel Matriks Absensi (.xlsx) berhasil diunduh!');
+    setTimeout(() => setToastMessage(''), 3000);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   // Filtering
   const filteredMembers = attendanceMembers.filter((m) => {
@@ -144,6 +155,24 @@ export const AdminAttendanceMatrix: React.FC<AdminAttendanceMatrixProps> = () =>
               {tab.label}
             </button>
           ))}
+        </div>
+
+        {/* Export & Print Action Buttons */}
+        <div className="flex items-center space-x-2 shrink-0">
+          <button
+            onClick={handleExportExcel}
+            className="py-1.5 px-3.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all flex items-center space-x-1.5 shadow-sm active:scale-95"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Export Excel (.xlsx)</span>
+          </button>
+          <button
+            onClick={handlePrint}
+            className="py-1.5 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all flex items-center space-x-1.5"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Cetak Lembar</span>
+          </button>
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import React from 'react';
 import { Gift, Download, Printer } from 'lucide-react';
 import { calculateEndCyclePayout } from '@nabungid/shared';
 import { useToastStore } from '../../../../stores/useToastStore';
+import { exportDistributionManifestToExcel } from '../../../../lib/excel-export';
 
 // Mock active member savings list for batch distribution calculation
 const mockMembers = [
@@ -29,8 +30,26 @@ export default function AdminDistribusiPage() {
 
   const totalDisbursedCash = payoutRows.reduce((sum, r) => sum + r.payout.netPayoutAmount, 0);
 
-  const handleExport = (type: 'EXCEL' | 'PDF') => {
-    success(`Manifest pembagian berhasil diexport dalam format ${type}!`);
+  const handleExportExcel = () => {
+    const manifestData = payoutRows.map((r) => ({
+      userName: r.name,
+      userPhone: r.phone,
+      programName: 'Paket Berkah 100k (50 Minggu)',
+      bundleName: r.bundleName,
+      totalSavedAmount: r.totalSaved,
+      adminFeeAmount: r.adminFee,
+      packageGoodsAmount: r.bundlePrice,
+      emergencyDeductionAmount: r.emergencyWithdrawn,
+      netPayoutAmount: r.payout.netPayoutAmount,
+      status: 'SIAP DICAIRKAN',
+    }));
+
+    exportDistributionManifestToExcel(manifestData);
+    success('Berkas Manifest Distribusi H-1 (.xlsx) berhasil diunduh!');
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
@@ -51,18 +70,18 @@ export default function AdminDistribusiPage() {
 
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => handleExport('EXCEL')}
+              onClick={handleExportExcel}
               className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg flex items-center space-x-1.5 transition-colors cursor-pointer"
             >
               <Download className="w-4 h-4" />
-              <span>Export Excel</span>
+              <span>Export Manifest Excel (.xlsx)</span>
             </button>
             <button
-              onClick={() => handleExport('PDF')}
+              onClick={handlePrint}
               className="py-2.5 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs border border-white/10 flex items-center space-x-1.5 transition-colors cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>Cetak PDF</span>
+              <span>Cetak / PDF Manifest</span>
             </button>
           </div>
         </div>
