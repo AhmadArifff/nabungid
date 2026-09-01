@@ -50,16 +50,23 @@ export const MasterProductItemSchema = z.object({
   isAvailable: z.boolean().default(true),
 });
 
-export const MasterPackageBundleSchema = z.object({
-  name: z.string().min(3, 'Nama paket minimal 3 karakter'),
-  description: z.string().optional(),
-  bundlePrice: z.number().min(0, 'Harga paket tidak boleh negatif'),
-  imageUrl: z.string().url().optional().nullable(),
-  isActive: z.boolean().default(true),
-  items: z.array(
-    z.object({
-      itemId: z.string().uuid(),
-      quantity: z.number().min(1).default(1),
-    })
-  ),
+export const PaymentProofUploadSchema = z.object({
+  weekNumber: z.number().min(1).max(60),
+  proofImageUrl: z.string().min(1, 'Foto bukti transfer harus disertakan'),
 });
+
+export const UpdateProfileSchema = z.object({
+  name: z.string().min(3).optional(),
+  email: z.string().email().optional(),
+  phoneNumber: z.string().min(10).max(15).optional(),
+  address: z.string().optional(),
+});
+
+// CamelCase aliases
+export const registerSchema = RegisterSchema;
+export const loginSchema = LoginSchema;
+export const updateProfileSchema = UpdateProfileSchema;
+export const enrollProgramSchema = EnrollProgramSchema;
+export const emergencyWithdrawalRequestSchema = EmergencyWithdrawalSchema;
+export const paymentProofUploadSchema = PaymentProofUploadSchema;
+

@@ -359,7 +359,6 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
                         <span>Belum Cek-in</span>
                       </span>
                     )}
-                    )}
                   </td>
                 </tr>
               ))}

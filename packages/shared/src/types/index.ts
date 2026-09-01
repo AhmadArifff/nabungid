@@ -95,6 +95,9 @@ export interface EmergencyWithdrawalRequest {
   createdAt: string;
 }
 
+export type EmergencyWithdrawalItem = EmergencyWithdrawalRequest;
+
+
 export interface DistributionPayoutSummary {
   totalSavedAmount: number;
   adminFeeAmount: number;
@@ -104,3 +107,6 @@ export interface DistributionPayoutSummary {
   payoutDate: string;
   isDisbursed: boolean;
 }
+
+export type DistributionCalculation = DistributionPayoutSummary;
+
