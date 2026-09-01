@@ -67,4 +67,20 @@ export class NasabahController {
       next(error);
     }
   }
+
+  static async getReceipt(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.id;
+      const savingId = req.params.id as string;
+      const weekNumber = Number(req.params.weekNumber);
+      const result = await NasabahService.getDigitalReceipt(userId, savingId, weekNumber);
+      if (!result.isSuccess) {
+        res.status(result.statusCode || 400).json({ success: false, message: result.error });
+        return;
+      }
+      res.status(200).json({ success: true, data: result.data });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

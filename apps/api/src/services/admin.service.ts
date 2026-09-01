@@ -230,4 +230,127 @@ export class AdminService {
 
     return Result.ok(results);
   }
+
+  /**
+   * Get 50-week attendance matrix for all active members in 1 optimized query.
+   */
+  static async getAttendanceMatrix(cycleId?: string) {
+    const savings = await prisma.memberSaving.findMany({
+      where: {
+        status: 'ACTIVE',
+        ...(cycleId ? { cycleId } : {}),
+      },
+      include: {
+        user: true,
+        program: true,
+        bundle: true,
+        ledgers: {
+          orderBy: { weekNumber: 'asc' },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const mapped = savings.map((s) => {
+      const verifiedCount = s.ledgers.filter((l) => l.status === 'VERIFIED').length;
+      const waitingCount = s.ledgers.filter((l) => l.status === 'WAITING_VERIFICATION').length;
+      const unpaidCount = 50 - verifiedCount - waitingCount;
+      const totalSaved = s.ledgers
+        .filter((l) => l.status === 'VERIFIED')
+        .reduce((sum, l) => sum + Number(l.amount), 0);
+
+      return {
+        id: s.id,
+        userId: s.userId,
+        name: s.user.name,
+        phone: s.user.phoneNumber,
+        weeklyNominal: Number(s.program.weeklyNominal),
+        bundleName: s.bundle?.name || 'Tanpa Paket Barang',
+        verifiedCount,
+        waitingCount,
+        unpaidCount,
+        totalSaved,
+        streakCount: verifiedCount,
+        ledgers: s.ledgers.map((l) => ({
+          id: l.id,
+          weekNumber: l.weekNumber,
+          status: l.status,
+          amount: Number(l.amount),
+          paidDate: l.paidDate ? l.paidDate.toISOString() : undefined,
+          paymentMethod: l.paymentMethod,
+          proofImageUrl: l.proofImageUrl || undefined,
+        })),
+      };
+    });
+
+    return Result.ok(mapped);
+  }
+
+  /**
+   * Quick Cash Entry: Admin marks a week as paid by cash instantly.
+   */
+  static async quickCashCheckin(adminId: string, memberSavingId: string, weekNumber: number) {
+    const ledger = await prisma.weeklyLedger.findFirst({
+      where: { memberSavingId, weekNumber },
+    });
+
+    if (!ledger) {
+      return Result.fail('Data buku kas minggu terkait tidak ditemukan.', 404);
+    }
+
+    const updated = await prisma.weeklyLedger.update({
+      where: { id: ledger.id },
+      data: {
+        status: 'VERIFIED',
+        paymentMethod: 'CASH',
+        paidDate: new Date(),
+        verifiedById: adminId,
+        verifiedAt: new Date(),
+        rejectionReason: null,
+      },
+    });
+
+    // Audit Log
+    await prisma.adminAuditLog.create({
+      data: {
+        adminId,
+        action: 'QUICK_CASH_ENTRY',
+        entityName: 'WeeklyLedger',
+        entityId: ledger.id,
+        newValues: { status: 'VERIFIED', paymentMethod: 'CASH', weekNumber },
+      },
+    });
+
+    return Result.ok(updated);
+  }
+
+  /**
+   * Generate WhatsApp reminder payload and link for an overdue/unpaid week.
+   */
+  static async triggerWhatsAppReminder(memberSavingId: string, weekNumber: number) {
+    const saving = await prisma.memberSaving.findUnique({
+      where: { id: memberSavingId },
+      include: { user: true, program: true },
+    });
+
+    if (!saving) {
+      return Result.fail('Data tabungan nasabah tidak ditemukan.', 404);
+    }
+
+    const formattedPhone = saving.user.phoneNumber.startsWith('0')
+      ? '62' + saving.user.phoneNumber.slice(1)
+      : saving.user.phoneNumber.replace(/[^0-9]/g, '');
+
+    const message = `Assalamu'alaikum Ibu/Bapak ${saving.user.name}, pengingat setoran tabungan Idul Fitri 1447H untuk *Minggu ke-${weekNumber} (Rp ${Number(saving.program.weeklyNominal).toLocaleString('id-ID')})* telah dibuka. Yuk cek-in kartu tabungan Anda di: https://nabungid.com/tabunganku. Terima kasih & semoga berkah! ✨`;
+
+    const waUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+
+    return Result.ok({
+      userName: saving.user.name,
+      userPhone: saving.user.phoneNumber,
+      weekNumber,
+      message,
+      waUrl,
+    });
+  }
 }

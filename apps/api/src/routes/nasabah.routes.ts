@@ -11,11 +11,8 @@ router.use(authenticateJwt, requireRole('NASABAH', 'ADMIN'));
 
 router.post('/enroll', NasabahController.enroll);
 router.get('/savings', NasabahController.getMySavings);
-router.post(
-  '/savings/:id/pay-week',
-  validateBody(paymentProofUploadSchema),
-  NasabahController.payWeek
-);
+router.post('/savings/:id/pay-week', validateBody(paymentProofUploadSchema), NasabahController.payWeek);
+router.get('/savings/:id/receipt/:weekNumber', NasabahController.getReceipt);
 router.patch('/savings/:id/bundle', NasabahController.selectBundle);
 
 export default router;

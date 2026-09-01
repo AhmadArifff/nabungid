@@ -214,4 +214,42 @@ export class NasabahService {
 
     return Result.ok(updated);
   }
+
+  /**
+   * Get digital receipt payload for a verified weekly payment.
+   */
+  static async getDigitalReceipt(userId: string, savingId: string, weekNumber: number) {
+    const saving = await prisma.memberSaving.findFirst({
+      where: { id: savingId, userId },
+      include: {
+        user: true,
+        program: true,
+        ledgers: {
+          where: { weekNumber },
+        },
+      },
+    });
+
+    if (!saving || saving.ledgers.length === 0) {
+      return Result.fail('Data setoran tidak ditemukan.', 404);
+    }
+
+    const ledger = saving.ledgers[0];
+    if (ledger.status !== 'VERIFIED') {
+      return Result.fail('Kwitansi hanya tersedia untuk setoran yang telah diverifikasi lunas.', 400);
+    }
+
+    return Result.ok({
+      receiptNumber: `KW-1447-W${weekNumber.toString().padStart(2, '0')}-${ledger.id.slice(-4).toUpperCase()}`,
+      userName: saving.user.name,
+      userPhone: saving.user.phoneNumber,
+      weekNumber: ledger.weekNumber,
+      amount: Number(ledger.amount),
+      paymentMethod: ledger.paymentMethod,
+      paidDate: ledger.paidDate ? ledger.paidDate.toISOString() : new Date().toISOString(),
+      verifiedAt: ledger.verifiedAt ? ledger.verifiedAt.toISOString() : undefined,
+      programName: saving.program.name,
+      isVerified: true,
+    });
+  }
 }

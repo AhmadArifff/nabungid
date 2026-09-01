@@ -91,4 +91,55 @@ export class AdminController {
       next(error);
     }
   }
+
+  static async getAttendanceMatrix(req: Request, res: Response, next: NextFunction) {
+    try {
+      const cycleId = req.query.cycleId as string | undefined;
+      const result = await AdminService.getAttendanceMatrix(cycleId);
+      if (!result.isSuccess) {
+        res.status(result.statusCode || 400).json({ success: false, message: result.error });
+        return;
+      }
+      res.status(200).json({ success: true, data: result.data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async quickCashCheckin(req: Request, res: Response, next: NextFunction) {
+    try {
+      const adminId = req.user!.id;
+      const { memberSavingId, weekNumber } = req.body;
+      if (!memberSavingId || !weekNumber) {
+        res.status(400).json({ success: false, message: 'memberSavingId dan weekNumber wajib diisi.' });
+        return;
+      }
+      const result = await AdminService.quickCashCheckin(adminId, memberSavingId, Number(weekNumber));
+      if (!result.isSuccess) {
+        res.status(result.statusCode || 400).json({ success: false, message: result.error });
+        return;
+      }
+      res.status(200).json({ success: true, data: result.data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async triggerWhatsAppReminder(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { memberSavingId, weekNumber } = req.body;
+      if (!memberSavingId || !weekNumber) {
+        res.status(400).json({ success: false, message: 'memberSavingId dan weekNumber wajib diisi.' });
+        return;
+      }
+      const result = await AdminService.triggerWhatsAppReminder(memberSavingId, Number(weekNumber));
+      if (!result.isSuccess) {
+        res.status(result.statusCode || 400).json({ success: false, message: result.error });
+        return;
+      }
+      res.status(200).json({ success: true, data: result.data });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
