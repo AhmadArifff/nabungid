@@ -1,0 +1,16 @@
+{
+  "extends": "@nabungid/tsconfig/base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "target": "ES2022",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": ["src/**/*", "prisma/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

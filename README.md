@@ -1,50 +1,316 @@
 # NabungID — Platform Tabungan Hari Raya & Paket Lebaran Terintegrasi
 
-[![Architecture](https://img.shields.io/badge/Architecture-Turborepo%20Monorepo-blue)](https://turbo.build/)
-[![Frontend](https://img.shields.io/badge/Frontend-Next.js%2014%2F15%20%7C%20PWA%20%7C%20TailwindCSS-emerald)](https://nextjs.org/)
-[![Backend](https://img.shields.io/badge/Backend-Express.js%20%7C%20Prisma%20%7C%20PostgreSQL-indigo)](https://expressjs.com/)
-[![Database](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-teal)](https://supabase.com/)
+<div align="center">
 
-**NabungID** adalah aplikasi monorepo modern untuk memfasilitasi program tabungan berkala (mingguan) menuju Hari Raya Idul Fitri selama 1 tahun penuh. Program tabungan dimulai secara otomatis pada **H+1 minggu setelah Idul Fitri** dan dicairkan pada **H-1 minggu sebelum Idul Fitri tahun berikutnya** (~48 hingga 50 minggu).
+![NabungID Banner](https://img.shields.io/badge/NabungID-Idul%20Fitri%201447H-emerald?style=for-the-badge&logo=cashapp&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-amber.svg?style=for-the-badge)](./LICENSE)
+[![Author: Ahmad Arif](https://img.shields.io/badge/Author-Ahmad%20Arif-blue.svg?style=for-the-badge)](https://github.com/AhmadArifff)
+[![Turborepo](https://img.shields.io/badge/Monorepo-Turborepo-ef4444.svg?style=for-the-badge&logo=turborepo&logoColor=white)](https://turbo.build/)
+[![Next.js PWA](https://img.shields.io/badge/Frontend-Next.js%2015%20PWA-000000.svg?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Express Backend](https://img.shields.io/badge/Backend-Express.js%20TypeScript-38bdf8.svg?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![Database](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-10b981.svg?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 
----
+**Solusi Digital Manajemen Tabungan Komunitas 50 Minggu Menuju Idul Fitri yang Aman, Transparan, dan Otomatis.**
 
-## 🌟 Fitur Utama
-
-- **Siklus Tabungan Fleksibel:** Siklus 1 tahun (H+1 Lebaran s.d. H-1 Lebaran) dengan nominal mingguan dinamis (Rp 25k, Rp 50k, Rp 100k, Rp 200k, atau custom).
-- **Katalog Master Data Paket Barang Dinamis (*Zero Hardcode*):** Paket Sembako mentah (daging, minyak, telur, beras), snack/kue kaleng Lebaran, dan perabotan rumah tangga yang dikonfigurasi via Admin Panel.
-- **Formula Distribusi Transparan:**
-  $$\text{Dana Bersih Diterima} = \text{Total Tabungan} - \text{Biaya Admin} - \text{Total Nilai Paket Barang} - \text{Total Penarikan Darurat}$$
-- **Fitur Penarikan Darurat (Emergency Withdrawal):** Penarikan tanpa komisi/penalti dengan batas maksimal Rp 500.000 (1x penarikan per siklus).
-- **Dual Role Management (RBAC):** Role **Admin** (Pengelola Kas & Master Data) dan Role **Nasabah** (Buku Tabungan Digital & Simulasi).
-- **High-Conversion Landing Page:** Desain UI/UX Pro Max Glassmorphism dengan kalkulator tabungan interaktif.
+</div>
 
 ---
 
-## 📁 Struktur Monorepo (Turborepo)
+## 📑 Daftar Isi
+1. [Tentang NabungID](#-tentang-nabungid)
+2. [Formula Pembagian Bersih (PRD Standard)](#-formula-pembagian-bersih-prd-standard)
+3. [Dokumentasi Visual & Panduan Penggunaan Fitur (User Guide)](#-dokumentasi-visual--panduan-penggunaan-fitur-user-guide)
+   - [A. Modul Publik & Landing Page](#a-modul-publik--landing-page)
+   - [B. Modul Nasabah (Buku Tabungan PWA)](#b-modul-nasabah-buku-tabungan-pwa)
+   - [C. Modul Administrator & Pengelola Kas](#c-modul-administrator--pengelola-kas)
+4. [Arsitektur Monorepo & Teknologi](#-arsitektur-monorepo--teknologi)
+5. [Panduan Instalasi & Menjalankan Lokal](#-panduan-instalasi--menjalankan-lokal)
+6. [Struktur Database Supabase Prisma](#-struktur-database-supabase-prisma)
+7. [Lisensi & Hak Cipta](#-lisensi--hak-cipta)
+
+---
+
+## 📖 Tentang NabungID
+
+**NabungID** dirancang khusus untuk memfasilitasi tradisi tahunan menabung persiapan Hari Raya Idul Fitri selama 1 tahun penuh (~50 minggu).
+Program tabungan berjalan mulai **H+1 minggu setelah Idul Fitri** dan dicairkan tepat pada **H-1 minggu sebelum Idul Fitri berikutnya**.
+
+Platform ini menggabungkan kemudahan aplikasi mobile **PWA (Progressive Web App)** dengan portal pengawasan administrasi untuk mencegah kekeliruan pencatatan manual, rekapitulasi paket sembako/kue kaleng, serta klaim dana darurat.
+
+---
+
+## 🧮 Formula Pembagian Bersih (PRD Standard)
+
+Pada saat pencairan dana di **H-1 Idul Fitri**, sistem NabungID menghitung hak kas bersih nasabah secara transparan menggunakan formula standar:
+
+$$\mathbf{Dana\ Bersih\ (Payout)} = \text{Total Tabungan} - \text{Biaya Admin} - \text{Harga Paket Barang} - \text{Total Tarik Darurat}$$
+
+* **Total Tabungan:** Akumulasi setoran mingguan nasabah yang telah diverifikasi sah oleh admin (`status = VERIFIED`).
+* **Biaya Admin:** Biaya pengelolaan program (default Rp 25.000 untuk 50 minggu).
+* **Harga Paket Barang:** Nilai paket sembako/kue kaleng/perabotan yang dipilih nasabah.
+* **Total Tarik Darurat:** Total dana yang telah dicairkan nasabah di tengah periode program (Maksimal Rp 500.000, 1x limit).
+
+---
+
+## 📸 Dokumentasi Visual & Panduan Penggunaan Fitur (User Guide)
+
+---
+
+### A. Modul Publik & Landing Page
+
+#### 1. Hitung Mundur Idul Fitri & 3D Interactive Hero
+![Landing Page Hero & Countdown](./docs/screenshots/01_landing_hero.png)
+
+* **Tampilan:** Header dilengkapi counter waktu *real-time* (Hari : Jam : Menit : Detik) menuju Idul Fitri 1447H serta celengan kubah emas 3D interaktif yang merespons pergerakan kursor mouse dan sentuhan layar.
+* **Cara Menggunakan:**
+  1. Klik atau gerakkan kursor di area celengan emas 3D untuk memicu efek animasi koin emas melayang.
+  2. Klik tombol **"Mulai Menabung Sekarang"** untuk menuju form pendaftaran nasabah.
+
+#### 2. Kalkulator Tabungan Interaktif & Proyeksi Pembagian
+![Interactive Calculator](./docs/screenshots/02_calculator.png)
+
+* **Tampilan:** Slider interaktif dengan nominal mingguan mulai dari Rp 25.000 hingga Rp 500.000, preset nominal cepat, pemilih paket hampers, dan simulasi penarikan darurat.
+* **Cara Menggunakan:**
+  1. Geser tuas nominal atau pilih tombol cepat (contoh: *Rp 100.000 / Minggu*).
+  2. Pilih opsi paket barang (contoh: *Paket Sembako Lengkap Rp 350.000*).
+  3. Amati rincian *Sliding Number*: Sistem menampilkan total tabungan kotor (Rp 5.000.000), potongan admin (Rp 25.000), nilai paket barang (Rp 350.000), dan **Uang Tunai Bersih Diterima di H-1 Lebaran (Rp 4.625.000)** secara instan.
+
+#### 3. PWA (Progressive Web App) Mobile Experience
+<div align="center">
+  <img src="./docs/screenshots/11_mobile_pwa.png" alt="Mobile PWA Responsive View" width="360" />
+</div>
+
+* **Android / Chrome / Edge:** Smart install banner otomatis muncul; tekan tombol **"Pasang Aplikasi"** untuk memasang NabungID ke home screen smartphone Anda.
+* **iOS Safari (iPhone/iPad):** Tekan ikon **Share (Bagikan)** di Safari $\rightarrow$ pilih **"Add to Home Screen (Tambahkan ke Layar Utama)"**.
+
+---
+
+### B. Modul Nasabah (Buku Tabungan PWA)
+
+#### 1. Dashboard Nasabah (`/dashboard`)
+![Dashboard Nasabah](./docs/screenshots/04_nasabah_dashboard.png)
+
+* **Tampilan:**
+  - **Circular Progress Ring:** Menampilkan persentase kepatuhan menabung dari total target 50 minggu.
+  - **Recent Stamp Strip:** 6 stempel minggu terakhir untuk memantau status setoran berjalan.
+  - **Proyeksi Kas Bersih:** Kartu kalkulasi transparan yang mengabarkan estimasi uang tunai yang akan diterima saat H-1 Lebaran.
+
+#### 2. Buku Tabungan / Kartu Absensi Fisik Digital (`/tabunganku`)
+![Kartu Absensi 50 Minggu](./docs/screenshots/05_kartu_absensi_50minggu.png)
+
+* **Tampilan Kartu Stempel 50 Minggu:**
+  - `LUNAS ✓` (Hijau Emerald): Setoran telah diverifikasi pengurus.
+  - `MENUNGGU VERIFIKASI` (Kuning Amber): Bukti transfer sedang ditinjau admin.
+  - `BELUM CEK-IN` (Abu-abu Slate): Menunggu pembayaran nasabah.
+* **Cara Cek-in & Upload Bukti Setoran:**
+  1. Pada kartu minggu yang aktif, klik tombol **"Cek-in"**.
+  2. Modal konfirmasi akan terbuka dengan rincian nomor rekening kas admin (BCA Syariah / BSI / DANA / QRIS).
+  3. Unggah foto bukti transfer (struk ATM / screenshot mobile banking).
+  4. Klik **"Kirim Bukti Pembayaran"**. Status otomatis beralih menjadi *Menunggu Verifikasi*.
+* **Fitur Cetak Kartu Fisik Resmi A4:**
+  - Klik tombol **"Cetak Kartu Absen"** di bagian atas.
+  - Browser otomatis membuka pratinjau cetak A4 berlatar putih bersih lengkap dengan kotak stempel, barcode identitas, dan **slot tanda tangan basah Nasabah & Pengurus Tabungan**.
+
+#### 3. Pemilihan Katalog Paket Hari Raya (`/paket`)
+![Katalog Paket Lebaran](./docs/screenshots/06_katalog_paket.png)
+
+* **Cara Menggunakan:**
+  1. Masuk ke menu **Paket** di navigasi bawah.
+  2. Telusuri katalog paket sembako atau parcel kue yang tersedia.
+  3. Klik **"Pilih Paket Ini"**. Sistem otomatis mengaitkan paket dengan tabungan Anda dan memperbarui formula pembagian kas di H-1 Idul Fitri.
+
+#### 4. Pengajuan Fasilitas Dana Darurat (`/penarikan`)
+![Penarikan Darurat](./docs/screenshots/07_penarikan_darurat.png)
+
+* **Ketentuan Keamanan (PRD 4.3):**
+  - Bebas biaya admin tambahan (0% penalti).
+  - Batas maksimal penarikan: **Rp 500.000**.
+  - Batas frekuensi: **Maksimal 1 kali penarikan** per siklus tabungan.
+  - Saldo terverifikasi harus mencukupi (Saldo $\ge$ Pengajuan + Biaya Admin).
+* **Cara Mengajukan:**
+  1. Buka halaman `/penarikan` dan klik **"Ajukan Penarikan Darurat"**.
+  2. Masukkan nominal darurat yang dibutuhkan (maksimal Rp 500.000).
+  3. Tuliskan alasan kebutuhan darurat (minimal 5 karakter).
+  4. Klik **"Kirim Pengajuan"**. Pengurus kas akan meninjau dan mentransfer dana ke rekening nasabah.
+
+---
+
+### C. Modul Administrator & Pengelola Kas
+
+#### 1. Dashboard KPI Operasional (`/admin/dashboard`)
+![Admin Dashboard](./docs/screenshots/08_admin_dashboard.png)
+
+* **Tampilan:**
+  - **Total Kas Terkumpul:** Akumulasi riil seluruh setoran terverifikasi.
+  - **Total Nasabah Aktif:** Jumlah penabung yang terdaftar pada siklus berjalan.
+  - **Antrean Verifikasi Setoran:** Notifikasi bukti transfer yang butuh tindakan.
+  - **Permohonan Tarik Darurat:** Klaim mendesak nasabah yang menunggu persetujuan.
+
+#### 2. Antrean Verifikasi Setoran (`/admin/verifikasi`)
+![Admin Verifikasi](./docs/screenshots/09_admin_verifikasi.png)
+
+* **Cara Menggunakan:**
+  1. Buka menu **Verifikasi Setoran**.
+  2. Klik thumbnail bukti transfer untuk memperbesar gambar struk pembayaran.
+  3. Cocokkan nominal transfer dengan nama nasabah.
+  4. Klik **"Setujui"** untuk mengubah status setoran menjadi `LUNAS` dan menambah saldo nasabah, atau klik **"Tolak"** jika bukti tidak valid.
+
+#### 3. Manifest Pembagian Batch H-1 & Export (`/admin/distribusi`)
+![Admin Manifest Distribusi](./docs/screenshots/10_admin_distribusi.png)
+
+* **Tabel Rekapitulasi Otomatis:** Sistem merangkum seluruh nasabah, total tabungan, potongan admin, paket barang yang harus diserahkan, potongan penarikan darurat, dan uang kas bersih per orang.
+* **Export & Cetak Berita Acara:**
+  - Klik **"Unduh Manifest (Excel)"** untuk arsip digital.
+  - Klik **"Cetak PDF"** untuk mencetak *Berita Acara Pembagian Tabungan Idul Fitri* lengkap dengan **kolom tanda tangan basah penerima kas/barang** serta otorisasi *Ketua Panitia* & *Bendahara*.
+
+---
+
+## 🏗️ Arsitektur Monorepo & Teknologi
 
 ```
 nabungid/
 ├── apps/
-│   ├── web/           # Next.js (App Router) + PWA + Tailwind CSS + Zustand
-│   └── api/           # Express.js + TypeScript + Prisma ORM
+│   ├── web/                        # Next.js 15 (App Router) + PWA + Tailwind CSS + Zustand
+│   │   ├── app/                    # Routing: Landing, (auth), (nasabah), (admin), offline, 404
+│   │   ├── components/             # Reusable UI, 3D Hero, Modals, Install Prompt, Toasts
+│   │   ├── stores/                 # Zustand state stores
+│   │   └── lib/                    # API client dengan Result Pattern & Guard Clauses
+│   │
+│   └── api/                        # Express.js REST API + TypeScript
+│       ├── prisma/                 # Prisma schema (11 Models) & Database Seeder
+│       └── src/
+│           ├── config/             # Supabase & PgBouncer database configs
+│           ├── controllers/        # Express request controllers
+│           ├── services/           # Financial & domain business services
+│           ├── middleware/         # JWT Auth RBAC & Global Exception Handlers
+│           └── routes/             # REST Endpoints (/api/v1/...)
+│
+├── docs/
+│   └── screenshots/                # Dokumentasi visual resolusi tinggi (Playwright automated)
+│
 ├── packages/
-│   ├── shared/        # Shared Zod schemas, DTOs, & calculation engines
-│   ├── tsconfig/      # Shared TypeScript configuration
-│   └── eslint-config/ # Shared ESLint rules
-├── PRD.md             # Master Product Requirements Document
-└── README.md
+│   ├── shared/                     # DTOs, Enums, Zod validation schemas, & Payout calculation
+│   └── tsconfig/                   # Shared TypeScript configurations
+│
+├── LICENSE                         # MIT License (Ahmad Arif)
+├── PRD.md                          # Master Product Requirements Document
+└── README.md                       # Comprehensive Project Documentation & User Guide
 ```
 
 ---
 
-## 📖 Dokumentasi Lengkap
+## 🚀 Panduan Instalasi & Menjalankan Lokal
 
-Dokumentasi lengkap mengenai spesifikasi fungsional, arsitektur sistem, skema database Prisma, REST API contracts, dan strategi QA dapat dilihat pada berkas **[PRD.md](./PRD.md)**.
+### 1. Prasyarat Sistem
+* **Node.js:** Versi `>= 18.18.0` atau `>= 20.0.0`
+* **npm:** Versi `>= 9.0.0`
+* **Git:** Versi terbaru
+
+### 2. Kloning Repository & Instalasi Dependensi
+```bash
+# Clone repository
+git clone https://github.com/AhmadArifff/nabungid.git
+cd nabungid
+
+# Beralih ke branch pengembangan (dev)
+git checkout dev
+
+# Install seluruh dependensi monorepo
+npm install
+```
+
+### 3. Konfigurasi Environment Variables
+Salin berkas `.env.example` pada `apps/api`:
+
+```bash
+# Backend API (.env)
+cp apps/api/.env.example apps/api/.env
+```
+
+Pastikan variabel database Supabase pada `apps/api/.env` telah terisi:
+```env
+PORT=5000
+NODE_ENV=development
+DATABASE_URL="postgresql://postgres.USER:PASSWORD@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.USER:PASSWORD@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
+JWT_SECRET="nabungid_jwt_secret_super_secure_key_1447h"
+JWT_EXPIRES_IN="7d"
+SUPABASE_URL="https://ztaasxrrmfrzzplmupjh.supabase.co"
+```
+
+### 4. Sinkronisasi Database Prisma & Seeding
+```bash
+# Generate Prisma Client
+npx prisma generate --schema=apps/api/prisma/schema.prisma
+
+# Push skema ke database Supabase
+npx prisma db push --schema=apps/api/prisma/schema.prisma
+
+# Jalankan Seeder master data awal
+npm run prisma:seed --workspace=@nabungid/api
+```
+
+### 5. Menjalankan Server Development
+Jalankan frontend dan backend secara bersamaan melalui Turborepo:
+
+```bash
+# Menjalankan seluruh aplikasi (Web port 3000 + API port 5000)
+npm run dev
+```
+
+* **Frontend Web (PWA):** [http://localhost:3000](http://localhost:3000)
+* **Backend REST API:** [http://localhost:5000/api/v1](http://localhost:5000/api/v1)
+* **Health Check API:** [http://localhost:5000/api/v1/health](http://localhost:5000/api/v1/health)
 
 ---
 
-## 🌿 Git Branching Strategy
+## 🗄️ Struktur Database Supabase Prisma
 
-- `main` : Production-ready branch.
-- `dev`  : Active development branch untuk fitur dan integrasi harian.
+Sistem menggunakan 11 model relasional yang telah diindeks untuk performa tinggi:
+
+| Nama Model | Fungsi & Deskripsi |
+| :--- | :--- |
+| **`User`** | Akun pengguna terotentikasi dengan role `ADMIN` atau `NASABAH`. |
+| **`SavingsCycle`** | Siklus 1 tahun (Tahun Hijriah 1447 H, rentang tanggal 50 minggu). |
+| **`SavingsProgram`** | Master program tabungan (nominal mingguan Rp 100k, biaya admin Rp 25k). |
+| **`ProductCategory`** | Kategori dinamis barang (*Sembako*, *Kue Kaleng*, *Perabotan*). |
+| **`ProductItem`** | Item produk individual (daging sapi, minyak, toples, wajan). |
+| **`PackageBundle`** | Bundling paket barang Lebaran beserta penetapan harga paket. |
+| **`PackageBundleItem`** | Relasi many-to-many item produk di dalam bundling. |
+| **`MemberSaving`** | Data kepesertaan aktif nasabah pada siklus tabungan berjalan. |
+| **`WeeklyLedger`** | 50 catatan baris setoran mingguan, status verifikasi, dan bukti transfer. |
+| **`EmergencyWithdrawal`** | Pengajuan penarikan darurat nasabah (Maks Rp 500k, 1x limit guard). |
+| **`DistributionPayout`** | Rekapitulasi formula pembagian bersih dan berita acara penyerahan H-1. |
+| **`AdminAuditLog`** | Rekam jejak audit aktivitas administrator terhadap data finansial. |
+
+---
+
+## 📄 Lisensi & Hak Cipta
+
+Proyek ini dilisensikan di bawah lisensi **MIT License** — dikembangkan dan dipelihara secara resmi oleh **[Ahmad Arif](https://github.com/AhmadArifff)**.
+
+```
+MIT License
+
+Copyright (c) 2026 Ahmad Arif
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```
+
+---
+
+<div align="center">
+
+Dibuat dengan ❤️ untuk Mempermudah Ibadah & Perayaan Idul Fitri Umat Muslim Indonesia.
+
+**NabungID — Menabung Disiplin, Lebaran Berkah & Tenang.**
+
+</div>

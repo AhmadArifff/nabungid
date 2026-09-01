@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070b12"/>
+      <stop offset="50%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="40%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background with rounded rectangle for App Icon -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" stroke="#10b981" stroke-width="6" stroke-opacity="0.3"/>
+
+  <!-- Subtle glow aura -->
+  <circle cx="256" cy="240" r="160" fill="#10b981" opacity="0.15" filter="url(#glow)"/>
+
+  <!-- Mosque Dome / Savings Coin Motif -->
+  <g transform="translate(0, -10)">
+    <!-- Outer Golden Ring -->
+    <circle cx="256" cy="256" r="140" fill="none" stroke="url(#goldGrad)" stroke-width="12" opacity="0.9"/>
+    <circle cx="256" cy="256" r="120" fill="#0b1320" stroke="#34d399" stroke-width="4" stroke-opacity="0.4"/>
+
+    <!-- Dome Top -->
+    <path d="M 256 160 C 290 190 320 230 320 280 L 192 280 C 192 230 222 190 256 160 Z" fill="url(#goldGrad)" filter="url(#glow)"/>
+
+    <!-- Crescent Moon Accent -->
+    <path d="M 256 125 C 248 125 242 132 242 140 C 242 148 248 155 256 155 C 253 151 251 146 251 140 C 251 134 253 129 256 125 Z" fill="#fef08a"/>
+
+    <!-- Vault / Coin Slot Bars -->
+    <rect x="232" y="295" width="48" height="8" rx="4" fill="#fef08a"/>
+    
+    <!-- Growth Arrow / Ketupat Symbol -->
+    <polygon points="256,315 285,345 256,375 227,345" fill="url(#emeraldGrad)" opacity="0.9"/>
+  </g>
+
+  <!-- Subtle Text "NabungID" -->
+  <text x="256" y="445" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="#ffffff" letter-spacing="4">NABUNGID</text>
+  <text x="256" y="475" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="16" fill="#fbbf24" letter-spacing="2">TABUNGAN HARI RAYA</text>
+</svg>

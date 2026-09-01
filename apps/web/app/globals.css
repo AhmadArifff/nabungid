@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 158 64% 45%;
+    --primary-foreground: 158 90% 96%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 158 64% 45%;
+    --radius: 1rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-[#070b12] text-foreground font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-200 overflow-x-hidden;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.10) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, rgba(5, 150, 105, 0.05) 0px, transparent 50%),
+      radial-gradient(at 80% 90%, rgba(217, 119, 6, 0.08) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+/* Custom Glassmorphism Classes */
+.glass-panel {
+  background: rgba(13, 21, 39, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-glow {
+  background: rgba(15, 25, 48, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.15);
+}
+
+.glass-card-gold {
+  background: rgba(22, 29, 46, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 35px -5px rgba(245, 158, 11, 0.12);
+}
+
+/* Gradient Text */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #fef08a 0%, #f59e0b 50%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-emerald {
+  background: linear-gradient(135deg, #a7f3d0 0%, #34d399 50%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #070b12;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #059669;
+}
+
+/* 🖨️ High-Quality Print Stylesheet */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 12mm 12mm 12mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    background-image: none !important;
+    font-size: 11pt;
+  }
+
+  /* Hide unnecessary interactive UI during print */
+  nav,
+  header,
+  aside,
+  button,
+  .print\\:hidden,
+  [aria-live="polite"],
+  .fixed {
+    display: none !important;
+  }
+
+  /* Force white background and black text on all cards */
+  .glass-panel,
+  .glass-card-gold,
+  .glass-panel-glow,
+  div,
+  main {
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border-color: #cbd5e1 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  h1, h2, h3, h4, span, p, strong, td, th {
+    color: #000000 !important;
+  }
+
+  /* Table styling */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    border: 1px solid #94a3b8 !important;
+    padding: 6px 8px !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+  }
+
+  /* Prevent page breaks inside cards */
+  .break-inside-avoid,
+  tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
