@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import { useAuthStore } from '../../../stores/useAuthStore';
-import { User, Phone, Mail, MapPin, CreditCard, ShieldCheck, CheckCircle2, Save } from 'lucide-react';
+import { useToastStore } from '../../../stores/useToastStore';
+import { User, Phone, Mail, MapPin, CreditCard, ShieldCheck, Save } from 'lucide-react';
 
 export default function ProfilPage() {
   const { user, updateProfile } = useAuthStore();
+  const { success } = useToastStore();
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phoneNumber || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -13,13 +15,11 @@ export default function ProfilPage() {
   const [accountNumber, setAccountNumber] = useState('1234567890');
   const [accountHolder, setAccountHolder] = useState(user?.name || 'Ahmad Arif');
   const [address, setAddress] = useState('Jl. Merdeka No. 45, Jakarta Selatan');
-  const [savedSuccess, setSavedSuccess] = useState(false);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfile({ name, phoneNumber: phone, email });
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2500);
+    success('Perubahan data profil dan rekening berhasil disimpan!');
   };
 
   return (
@@ -126,13 +126,6 @@ export default function ProfilPage() {
             </div>
           </div>
         </div>
-
-        {savedSuccess && (
-          <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center space-x-2">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Perubahan data profil dan rekening berhasil disimpan!</span>
-          </div>
-        )}
 
         <button
           type="submit"

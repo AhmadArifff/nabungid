@@ -1,21 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAdminStore } from '../../../../stores/useAdminStore';
-import { ShieldAlert, Check, X, Phone, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useToastStore } from '../../../../stores/useToastStore';
+import { ShieldAlert, Check, X, Phone, AlertTriangle } from 'lucide-react';
 
 export default function AdminPenarikanPage() {
   const { pendingWithdrawals, approveWithdrawal } = useAdminStore();
-  const [successToast, setSuccessToast] = useState('');
+  const { success, warning } = useToastStore();
 
   const handleDecision = (id: string, approve: boolean) => {
     approveWithdrawal(id, approve);
-    setSuccessToast(
-      approve
-        ? 'Penarikan darurat nasabah disetujui & dicairkan!'
-        : 'Permohonan penarikan darurat ditolak.'
-    );
-    setTimeout(() => setSuccessToast(''), 2500);
+    if (approve) {
+      success('Penarikan darurat nasabah disetujui & dana dicairkan.');
+    } else {
+      warning('Permohonan penarikan darurat ditolak.');
+    }
   };
 
   return (
@@ -31,13 +31,6 @@ export default function AdminPenarikanPage() {
           Periksa kecukupan saldo berjalan nasabah dan pastikan nominal tidak melebihi batas Rp 500.000.
         </p>
       </div>
-
-      {successToast && (
-        <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center space-x-2">
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{successToast}</span>
-        </div>
-      )}
 
       {/* Pending List */}
       <div className="rounded-3xl bg-slate-900/80 border border-white/10 overflow-hidden">

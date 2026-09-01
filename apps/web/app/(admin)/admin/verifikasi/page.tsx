@@ -2,17 +2,21 @@
 
 import React, { useState } from 'react';
 import { useAdminStore } from '../../../../stores/useAdminStore';
-import { CheckSquare, Check, X, Eye, Phone, Calendar, Sparkles, CheckCircle2 } from 'lucide-react';
+import { useToastStore } from '../../../../stores/useToastStore';
+import { CheckSquare, Check, X, Eye, Phone, Calendar, Sparkles } from 'lucide-react';
 
 export default function AdminVerifikasiPage() {
   const { pendingLedgers, verifyLedger } = useAdminStore();
+  const { success, warning } = useToastStore();
   const [selectedProof, setSelectedProof] = useState<string | null>(null);
-  const [successToast, setSuccessToast] = useState('');
 
   const handleVerify = (id: string, approve: boolean) => {
     verifyLedger(id, approve);
-    setSuccessToast(approve ? 'Setoran nasabah berhasil disetujui!' : 'Setoran nasabah telah ditolak.');
-    setTimeout(() => setSuccessToast(''), 2500);
+    if (approve) {
+      success('Setoran nasabah berhasil disetujui dan saldo diperbarui.');
+    } else {
+      warning('Setoran nasabah telah ditolak.');
+    }
   };
 
   return (
@@ -28,13 +32,6 @@ export default function AdminVerifikasiPage() {
           Periksa foto bukti transfer setoran nasabah sebelum menyetujui penambahan saldo.
         </p>
       </div>
-
-      {successToast && (
-        <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center space-x-2">
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{successToast}</span>
-        </div>
-      )}
 
       {/* Table / Card List */}
       <div className="rounded-3xl bg-slate-900/80 border border-white/10 overflow-hidden">

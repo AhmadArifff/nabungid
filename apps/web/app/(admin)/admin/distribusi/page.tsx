@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Gift, Download, Printer, CheckCircle2 } from 'lucide-react';
+import React from 'react';
+import { Gift, Download, Printer } from 'lucide-react';
 import { calculateEndCyclePayout } from '@nabungid/shared';
+import { useToastStore } from '../../../../stores/useToastStore';
 
 // Mock active member savings list for batch distribution calculation
 const mockMembers = [
@@ -14,7 +15,7 @@ const mockMembers = [
 ];
 
 export default function AdminDistribusiPage() {
-  const [downloadToast, setDownloadToast] = useState('');
+  const { success } = useToastStore();
 
   const payoutRows = mockMembers.map((m) => {
     const payout = calculateEndCyclePayout({
@@ -29,49 +30,43 @@ export default function AdminDistribusiPage() {
   const totalDisbursedCash = payoutRows.reduce((sum, r) => sum + r.payout.netPayoutAmount, 0);
 
   const handleExport = (type: 'EXCEL' | 'PDF') => {
-    setDownloadToast(`Manifest pembagian berhasil diexport dalam format ${type}!`);
-    setTimeout(() => setDownloadToast(''), 3000);
+    success(`Manifest pembagian berhasil diexport dalam format ${type}!`);
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-1">
-            <Gift className="w-3.5 h-3.5" />
-            <span>Kalkulator & Manifest H-1 Idul Fitri</span>
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-1">
+              <Gift className="w-3.5 h-3.5" />
+              <span>Kalkulator & Manifest H-1 Idul Fitri</span>
+            </div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Kalkulasi Pembagian Batch Dana & Barang</h1>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Formula PRD: Dana Bersih = Total Tabungan - Biaya Admin - Paket Barang - Penarikan Darurat.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Kalkulasi Pembagian Batch Dana & Barang</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Formula PRD: Dana Bersih = Total Tabungan - Biaya Admin - Paket Barang - Penarikan Darurat.
-          </p>
-        </div>
 
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => handleExport('EXCEL')}
-            className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg flex items-center space-x-1.5 transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export Excel</span>
-          </button>
-          <button
-            onClick={() => handleExport('PDF')}
-            className="py-2.5 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs border border-white/10 flex items-center space-x-1.5 transition-colors"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Cetak PDF</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handleExport('EXCEL')}
+              className="py-2.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg flex items-center space-x-1.5 transition-colors cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export Excel</span>
+            </button>
+            <button
+              onClick={() => handleExport('PDF')}
+              className="py-2.5 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs border border-white/10 flex items-center space-x-1.5 transition-colors cursor-pointer"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Cetak PDF</span>
+            </button>
+          </div>
         </div>
       </div>
-
-      {downloadToast && (
-        <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center space-x-2">
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{downloadToast}</span>
-        </div>
-      )}
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -112,6 +107,7 @@ export default function AdminDistribusiPage() {
               <th className="py-3.5 px-4">Paket Pilihan</th>
               <th className="py-3.5 px-4">Tarik Darurat</th>
               <th className="py-3.5 px-4 text-right">Uang Bersih (Payout)</th>
+              <th className="hidden print:table-cell py-3.5 px-4 text-center">Tanda Tangan Penerima</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5 font-mono">
@@ -135,10 +131,44 @@ export default function AdminDistribusiPage() {
                 <td className="py-4 px-4 text-right font-black text-emerald-400 text-sm">
                   Rp {r.payout.netPayoutAmount.toLocaleString('id-ID')}
                 </td>
+                <td className="hidden print:table-cell py-4 px-4 text-center">
+                  <div className="h-10 border-b border-dashed border-slate-400 w-28 mx-auto" />
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* 🖨️ Print-Only Official Footer & Authorization Block */}
+      <div className="hidden print:block pt-8 mt-8 border-t border-slate-400 break-inside-avoid">
+        <div className="flex justify-between items-center text-xs text-slate-800">
+          <div>
+            <div className="font-bold">Keterangan Verifikasi Manifest:</div>
+            <p className="text-[10px] text-slate-600">
+              Dokumen ini merupakan Berita Acara resmi pencairan dana & penyerahan paket barang tabungan Idul Fitri 1447H.
+            </p>
+          </div>
+          <div className="text-right text-[10px] text-slate-600 font-mono">
+            Total Kas Dibagikan: Rp {totalDisbursedCash.toLocaleString('id-ID')}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-12 pt-10 text-center text-xs">
+          <div className="space-y-16">
+            <div className="text-slate-700 font-semibold">Ketua Panitia / Pengelola Tabungan,</div>
+            <div className="border-b border-slate-900 mx-12 font-bold text-slate-900">
+              ( Koordinator Utama )
+            </div>
+          </div>
+
+          <div className="space-y-16">
+            <div className="text-slate-700 font-semibold">Bendahara Kas NabungID,</div>
+            <div className="border-b border-slate-900 mx-12 font-bold text-slate-900">
+              ( Bendahara Pengelola )
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

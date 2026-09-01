@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Upload, CheckCircle2 } from 'lucide-react';
 import { WeeklyLedgerItem } from '@nabungid/shared';
+import { useToastStore } from '../../stores/useToastStore';
 
 interface UploadProofModalProps {
   isOpen: boolean;
@@ -43,6 +44,7 @@ export const UploadProofModal: React.FC<UploadProofModalProps> = ({
       setIsUploading(false);
       const finalUrl = previewUrl || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500';
       onSubmit(ledger.weekNumber, finalUrl);
+      useToastStore.getState().success(`Bukti setoran minggu ke-${ledger.weekNumber} berhasil dikirim dan menunggu verifikasi Admin.`);
       onClose();
     }, 600);
   };

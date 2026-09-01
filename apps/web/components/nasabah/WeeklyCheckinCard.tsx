@@ -359,15 +359,6 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
                         <span>Belum Cek-in</span>
                       </span>
                     )}
-                  </td>
-                  <td className="py-3.5 px-4 text-right font-sans">
-                    {(l.status === 'PENDING_PAYMENT' || l.status === 'REJECTED') && (
-                      <button
-                        onClick={() => onOpenCheckin(l)}
-                        className="py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-emerald-600 text-white font-bold text-xs transition-colors"
-                      >
-                        Cek-in
-                      </button>
                     )}
                   </td>
                 </tr>
@@ -376,6 +367,39 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
           </table>
         </div>
       )}
+
+      {/* 🖨️ Print-Only Official Footer & Signatures Block */}
+      <div className="hidden print:block pt-8 mt-8 border-t border-slate-400 break-inside-avoid">
+        <div className="flex justify-between items-start text-xs text-slate-800">
+          <div>
+            <div className="font-bold">Ketentuan Pencairan:</div>
+            <ul className="list-disc list-inside text-[10px] text-slate-600 space-y-0.5 mt-1">
+              <li>Pencairan dana & paket barang dilakukan tepat pada H-1 Idul Fitri 1447H.</li>
+              <li>Kartu ini adalah bukti sah kepesertaan tabungan fisik digital.</li>
+            </ul>
+          </div>
+          <div className="text-right text-[10px] text-slate-600 font-mono">
+            Dicetak pada: {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} WIB
+          </div>
+        </div>
+
+        {/* Signature Columns */}
+        <div className="grid grid-cols-2 gap-12 pt-10 text-center text-xs">
+          <div className="space-y-16">
+            <div className="text-slate-700 font-semibold">Nasabah Penabung,</div>
+            <div className="border-b border-slate-900 mx-8 font-bold text-slate-900">
+              ( {user?.name || 'Ahmad Arif'} )
+            </div>
+          </div>
+
+          <div className="space-y-16">
+            <div className="text-slate-700 font-semibold">Pengurus / Admin Tabungan,</div>
+            <div className="border-b border-slate-900 mx-8 font-bold text-slate-900">
+              ( Pengelola Kas NabungID )
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

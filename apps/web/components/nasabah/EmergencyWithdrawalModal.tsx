@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, ShieldAlert, AlertTriangle, CheckCircle2, ArrowRight, Info } from 'lucide-react';
 import { useNasabahStore } from '../../stores/useNasabahStore';
+import { useToastStore } from '../../stores/useToastStore';
 
 interface EmergencyWithdrawalModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export const EmergencyWithdrawalModal: React.FC<EmergencyWithdrawalModalProps> =
       const result = requestEmergencyWithdrawal(amount, reason);
       if (result.success) {
         setSuccessMsg(result.message);
+        useToastStore.getState().success('Permohonan penarikan darurat telah dikirim ke Admin untuk ditinjau.');
         setTimeout(() => {
           onClose();
           setSuccessMsg('');
