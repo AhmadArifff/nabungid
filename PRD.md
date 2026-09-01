@@ -2,9 +2,9 @@
 
 **Product:** NabungID (Aplikasi Tabungan Hari Raya & Paket Lebaran Berkelanjutan)  
 **Author:** Lead Product Manager & Architecture Squad (`/pm`, `/frontend`, `/backend`, `/qa`)  
-**Date:** 2026-08-31  
-**Version:** v1.0.0  
-**Status:** Approved & Ready for Implementation  
+**Date:** 2026-09-01  
+**Version:** v1.2.0 (Master Comprehensive Edition)  
+**Status:** Approved & Ready for Next Development Cycle  
 **Architecture:** Turborepo Monorepo (`apps/web`, `apps/api`, `packages/shared`)  
 
 ---
@@ -14,11 +14,15 @@
 **NabungID** adalah platform tabungan komunitas modern berbasis Progressive Web App (PWA) dan API terpusat yang dirancang khusus untuk memfasilitasi program tabungan berkala (mingguan) menuju Hari Raya Idul Fitri selama 1 tahun penuh. Program tabungan dimulai secara otomatis pada **H+1 minggu setelah Idul Fitri** dan dicairkan pada **H-1 minggu sebelum Idul Fitri tahun berikutnya** (~48 hingga 50 minggu siklus fleksibel).
 
 Platform ini mengintegrasikan:
-1. **Fleksibilitas Paket Tabungan:** Pilihan nominal setoran mingguan dinamis (contoh standar: Rp 100.000/minggu, serta variasi Rp 25.000, Rp 50.000, Rp 200.000, atau custom nominal via Admin Panel).
+1. **Fleksibilitas Paket Tabungan:** Pilihan nominal setoran mingguan dinamis (standar Rp 100.000/minggu, variasi Rp 25.000, Rp 50.000, Rp 200.000, atau custom nominal via Admin Panel).
 2. **Katalog Paket Barang/Hampers Dinamis:** Integrasi paket sembako/bahan mentah (daging sapi/ayam, minyak goreng, telur, beras), snack/kue kaleng Lebaran, dan perabotan rumah tangga yang harganya diakumulasikan dan dikurangkan otomatis dari total tabungan akhir.
-3. **Formula Distribusi Transparan:** `Dana Akhir Diterima = Total Tabungan - Biaya Admin (Dinamis) - Total Harga Paket Barang Terpilih - Total Penarikan Darurat`.
+3. **Formula Distribusi Transparan:**  
+   $$\text{Dana Bersih Diterima} = \text{Total Tabungan Terkumpul} - \text{Biaya Admin (Dinamis)} - \text{Total Harga Paket Barang} - \text{Total Penarikan Darurat}$$
 4. **Fitur Penarikan Darurat Terkontrol (Emergency Withdrawal):** Nasabah dapat menarik dana tabungan darurat sebelum waktu pembagian tanpa potongan komisi/penalti, dengan aturan tegas: **Maksimal Rp 500.000 dan hanya dapat dilakukan 1x** per siklus tabungan.
-5. **High-Conversion Landing Page & Dual Role Management:** Antarmuka publik yang memukau (UI/UX Pro Max dengan Glassmorphism dan kalkulator interaktif), Role Nasabah yang intuitif, serta Admin Panel komprehensif tanpa data *hardcoded*.
+5. **Kartu Cek-in & Stempel Absensi Digital Nasabah (Weekly Check-in Stamp Pass):** Tampilan kartu iuran stempel fisik modern dengan tracking *disiplin streak*, tombol cek-in instan, dan fitur cetak/unduh kartu absensi.
+6. **Matriks Rekap Absensi 50 Minggu Admin (Admin Attendance Matrix Sheet):** Lembar spreadsheet terpadu di Admin Console yang memetakan kehadiran setoran seluruh nasabah x 50 minggu secara *real-time* dengan fitur *1-Click Cash Setoran Entry*.
+7. **Pusat Pengingat WhatsApp & Kwitansi Digital:** Notifikasi tagihan ramah dan kwitansi berstempel digital resmi untuk setiap setoran terverifikasi.
+8. **High-Conversion Landing Page & Dual Role Management:** Antarmuka publik 3D (*Three.js Carousel 360°*, Celengan Ayam Emas, Dompet Berkah, Keranjang Sembako), Role Nasabah PWA intuitif, serta Admin Panel komprehensif berprinsip *Zero Hardcoded Master Data*.
 
 ---
 
@@ -28,7 +32,7 @@ Platform ini mengintegrasikan:
 Tradisi menabung untuk keperluan Hari Raya Idul Fitri (uang saku hari raya, hampers sembako, kue kaleng, dan perlengkapan rumah tangga) sangat masif di masyarakat Indonesia. Namun, sebagian besar program tabungan RT/RW, arisan, atau kelompok pengajian masih dikelola secara manual menggunakan buku kas fisik, kartu iuran kertas, atau spreadsheet rawan manipulasi.
 
 ### 2.2 Permasalahan Utama (Core Problems)
-> **Problem:** Pengelolaan tabungan Lebaran manual menimbulkan ketidakpastian saldo, risiko salah hitung biaya admin dan paket barang, sulitnya pencatatan penarikan darurat, serta hilangnya transparansi pencairan dana di H-1 minggu menjelang Idul Fitri.
+> **Problem:** Pengelolaan tabungan Lebaran manual menimbulkan ketidakpastian saldo, risiko salah hitung biaya admin dan paket barang, sulitnya pencatatan penarikan darurat, hilangnya kartu iuran kertas, serta tidak adanya transparansi pencairan dana di H-1 minggu menjelang Idul Fitri.
 > 
 > **Target Pengguna Terdampak:** Nasabah/Anggota penabung keluarga/komunitas dan Pengelola Tabungan (Admin/Koordinator).
 > 
@@ -38,9 +42,11 @@ Tradisi menabung untuk keperluan Hari Raya Idul Fitri (uang saku hari raya, hamp
 
 | Masalah Riil | Kebutuhan Solusi di NabungID | Dampak Solusi |
 | :--- | :--- | :--- |
-| Buku iuran hilang / rusak | Buku tabungan digital PWA (*Mobile-First*) dengan riwayat per minggu | Kepercayaan nasabah meningkat 100%, data aman di Cloud PostgreSQL |
-| Paket sembako tidak fleksibel | Sistem Katalog Master Data Barang & Bundling Paket fleksibel di Admin | Nasabah bisa memilih barang/sembako sesuai selera & budget |
-| Kebutuhan mendadak di tengah tahun | Penarikan Darurat max Rp 500.000 (1x penarikan, 0% potongan) | Likuiditas darurat bagi nasabah tanpa merusak sistem tabungan |
+| Buku iuran hilang / rusak | Buku tabungan digital & **Kartu Stempel Absensi 50 Minggu PWA** | Kepercayaan nasabah meningkat 100%, data aman di Cloud PostgreSQL |
+| Paket sembako kaku & tidak fleksibel | Sistem Katalog Master Data Barang & Bundling Paket fleksibel di Admin | Nasabah bisa memilih barang/sembako sesuai selera & budget |
+| Kebutuhan mendadak di tengah tahun | Penarikan Darurat max Rp 500.000 (1x penarikan, 0% potongan denda) | Likuiditas darurat bagi nasabah tanpa merusak sistem tabungan |
+| Admin sulit memantau 50+ nasabah | **Matriks Absensi 50 Minggu (Admin Spreadsheet View)** + Setor Tunai Instan | Rekapitulasi absensi setoran mingguan terpantau dalam 1 layar cepat |
+| Nasabah lupa menyetor tiap minggu | **WhatsApp Reminder Center** + Broadcast Notifikasi | Menurunkan rasio tunggakan hingga 85% sebelum H-1 Idul Fitri |
 | Perhitungan akhir rumit | Otomatisasi kalkulasi `Tabungan - Admin - Paket - Tarik Darurat` | Rekap pembagian selesai dalam 1 klik tanpa salah hitung |
 
 ---
@@ -52,6 +58,7 @@ Tradisi menabung untuk keperluan Hari Raya Idul Fitri (uang saku hari raya, hamp
 - **Karakteristik Perangkat:** Mayoritas menggunakan Smartphone (Android/iOS) dengan koneksi mobile data.
 - **Tujuan Utama:**
   - Menabung secara konsisten tiap minggu (misal Rp 100.000/minggu) tanpa terasa berat.
+  - Memiliki **Kartu Absensi Cek-in Digital** dengan stempel lunas dan tracking streak keaktifan.
   - Memilih paket hampers Lebaran (sembako daging/minyak/telur, kue kaleng, perabotan).
   - Memantau akumulasi saldo dan sisa minggu tabungan dengan indikator visual.
   - Mengajukan penarikan darurat ketika ada kebutuhan mendesak (maksimal Rp 500.000, 1x).
@@ -62,27 +69,29 @@ Tradisi menabung untuk keperluan Hari Raya Idul Fitri (uang saku hari raya, hamp
 - **Karakteristik Perangkat:** Desktop / Laptop / Tablet untuk operasional harian.
 - **Tujuan Utama:**
   - Mengonfigurasi siklus tabungan (Periode H+1 Idul Fitri s.d. H-1 Idul Fitri berikutnya).
-  - Mengelola master data nominal paket mingguan (Rp 25k, Rp 50k, Rp 100k, Rp 200k, custom).
-  - Mengelola katalog item barang (sembako mentah, kue, perabotan) dan menyusun bundling paket.
-  - Mengatur biaya administrasi program (fixed nominal atau persentase).
-  - Mencatat / memverifikasi setoran mingguan nasabah (manual input atau upload bukti transfer).
+  - Memantau **Matriks Absensi 50 Minggu Seluruh Nasabah** dalam satu layar tabel spreadsheet.
+  - Mencatat setoran tunai instan (*1-Click Quick Cash Setoran*) atau memverifikasi upload bukti transfer.
+  - Mengirim pengingat WhatsApp ke nasabah yang belum cek-in di minggu berjalan.
+  - Mengelola master data nominal program, item barang sembako, dan bundling paket secara dinamis.
   - Menyetujui atau menolak permohonan penarikan darurat nasabah.
-  - Melakukan *batch calculation disbursement* dan mencetak bukti tanda terima pembagian.
+  - Melakukan *batch calculation disbursement* dan mengekspor manifest pembagian ke Excel/PDF.
 
 ### 3.3 Role-Based Access Control (RBAC) Matrix
 
 | Fitur / Modul | Public / Guest | Nasabah (Pelanggan) | Admin (Pengelola) |
 | :--- | :---: | :---: | :---: |
-| Landing Page & Simulasi Tabungan | ✅ View Only | ✅ View & Simulate | ✅ View & Simulate |
+| Landing Page & Simulasi Tabungan 3D | ✅ View Only | ✅ View & Simulate | ✅ View & Simulate |
 | Registrasi & Login (Better Auth + JWT) | ✅ Akses | ✅ Akses | ✅ Akses |
 | Pendaftaran Program Tabungan Baru | ❌ | ✅ Self-Service | ✅ Create on Behalf |
-| Monitoring Progres Tabungan & Ledger Mingguan | ❌ | ✅ Data Milik Sendiri | ✅ Semua Nasabah |
+| Monitoring Progres Tabungan & Kartu Absen Stamp | ❌ | ✅ Data Milik Sendiri | ✅ Semua Nasabah |
+| Matriks Rekap Absensi 50 Minggu (Spreadsheet View) | ❌ | ❌ | ✅ Full Matrix View |
+| Setor Tunai Cepat (Quick Cash Entry) | ❌ | ❌ | ✅ 1-Click Verification |
 | Request Penarikan Darurat (Max 500rb, 1x) | ❌ | ✅ Submit Form | ✅ Review & Approve |
-| Master Data Program, Siklus & Biaya Admin | ❌ | ❌ | ✅ Full CRUD |
-| Master Data Item Barang & Bundling Paket | ❌ | ❌ | ✅ Full CRUD |
-| Verifikasi / Catat Setoran Mingguan | ❌ | ❌ (Hanya kirim bukti) | ✅ Verifikasi & Entry |
-| Eksekusi Pembagian Dana & Cetak Manifest H-1 | ❌ | ✅ View Rincian Akhir | ✅ Eksekusi & Export PDF/Excel |
-| Audit Trail & Log Keuangan | ❌ | ❌ | ✅ Read-Only Log |
+| Master Data Program, Siklus & Biaya Admin | ❌ | ❌ | ✅ Full CRUD (Zero Hardcode) |
+| Master Data Item Barang & Bundling Paket | ❌ | ❌ | ✅ Full CRUD (Zero Hardcode) |
+| WhatsApp Reminder Broadcast Center | ❌ | ❌ | ✅ Broadcast Trigger |
+| Eksekusi Pembagian Dana & Export Manifest H-1 | ❌ | ✅ View Rincian Akhir | ✅ Eksekusi & Export Excel/PDF |
+| Unduh Kwitansi Digital Resmi Berstempel | ❌ | ✅ Kwitansi Pribadi | ✅ Semua Kwitansi |
 
 ---
 
@@ -120,19 +129,19 @@ $$\text{Dana Bersih Diterima} = \text{Total Tabungan Terkumpul} - \text{Biaya Ad
 
 #### Komponen Formula:
 1. **Total Tabungan Terkumpul:** Jumlah seluruh setoran mingguan yang telah diverifikasi (`WeeklyLedger.status = 'VERIFIED'`).
-2. **Biaya Admin:** Nilai biaya administrasi yang diatur oleh Admin pada program tabungan terkait (bisa nominal tetap misal Rp 20.000/siklus atau persentase).
-3. **Total Nilai Paket Barang:** Akumulasi harga barang yang dipilih nasabah (contoh: Paket Sembako Premium seharga Rp 350.000 berisi Daging 1kg, Telur 1 tray, Minyak 2L, Beras 5kg, Syrup).
+2. **Biaya Admin:** Nilai biaya administrasi yang diatur oleh Admin pada program tabungan terkait (nominal tetap misal Rp 25.000/siklus atau persentase).
+3. **Total Nilai Paket Barang:** Akumulasi harga barang yang dipilih nasabah (contoh: Paket Sembako Berkah seharga Rp 318.000 berisi Daging 1kg, Telur 1 tray, Minyak 2L, Beras 5kg).
 4. **Total Penarikan Darurat:** Total nominal uang yang ditarik lebih awal oleh nasabah selama periode berjalan (maksimal Rp 500.000).
 
 #### Contoh Kasus Nyata:
 - Nasabah menabung paket **Rp 100.000 / minggu** selama **50 minggu**.
   - Total Tabungan: $50 \times \text{Rp } 100.000 = \text{Rp } 5.000.000$
   - Biaya Admin Program: $\text{Rp } 25.000$
-  - Paket Barang Terpilih: Paket Sembako & Kue Kaleng seharga $\text{Rp } 450.000$
-  - Penarikan Darurat (Bulan ke-6): $\text{Rp } 500.000$ (1x limit)
+  - Paket Barang Terpilih: Paket Sembako seharga $\text{Rp } 318.000$
+  - Penarikan Darurat (Bulan ke-6): $\text{Rp } 400.000$ (1x limit)
 - **Rincian Pembagian pada H-1 Minggu Idul Fitri:**
-  - Hak Barang: 1 Paket Sembako & Kue Kaleng.
-  - Uang Tunai Diterima: $\text{Rp } 5.000.000 - \text{Rp } 25.000 - \text{Rp } 450.000 - \text{Rp } 500.000 = \mathbf{\text{Rp } 4.025.000}$.
+  - Hak Barang: 1 Paket Sembako Berkah.
+  - Uang Tunai Diterima: $\text{Rp } 5.000.000 - \text{Rp } 25.000 - \text{Rp } 318.000 - \text{Rp } 400.000 = \mathbf{\text{Rp } 4.257.000}$.
 
 ---
 
@@ -142,15 +151,72 @@ Untuk menjaga likuiditas kas dan kedisiplinan menabung, sistem menerapkan aturan
 
 1. **Bebas Komisi / Penalti (0% Fee):** Penarikan tidak dikenakan potongan denda apa pun.
 2. **Batas Nominal Maksimal:** Total penarikan darurat **tidak boleh melebihi Rp 500.000**.
-3. **Batas Frekuensi Transaksi:** Nasabah hanya dapat menarik dana darurat **maksimal 1 (satu) kali** per program tabungan jika nominal yang diambil mencapai batas limit (atau pengambilan parsial menghabiskan kuota 1x transaksi sesuai konfigurasi kebijakan).
+3. **Batas Frekuensi Transaksi:** Nasabah hanya dapat menarik dana darurat **maksimal 1 (satu) kali** per program tabungan.
 4. **Validasi Saldo Berjalan (*Minimum Safe Balance Guard*):**
-   - Saldo terkumpul saat pengajuan harus lebih besar dari nominal penarikan yang diminta + estimasi biaya admin + perkiraan minimal cadangan paket.
    - Formula Validasi: $\text{Saldo Terverifikasi} \ge \text{Nominal Pengajuan} + \text{Biaya Admin}$.
 5. **Alur Approval Admin:** Permintaan penarikan berstatus `PENDING_APPROVAL` $\rightarrow$ Admin memeriksa dan menyetujui (`APPROVED`) atau menolak (`REJECTED` dengan alasan) $\rightarrow$ Admin mentransfer dana / menyerahkan tunai dan mengunggah bukti disbursement $\rightarrow$ Status berubah menjadi `COMPLETED`.
 
 ---
 
-### 4.4 Master Data Dinamis & Zero Hardcode Policy
+### 4.4 Sistem Kartu Cek-in & Stempel Absensi 50 Minggu Nasabah (Weekly Check-in Stamp Pass)
+
+Setiap nasabah memiliki kartu absensi setoran digital yang interaktif di halaman `/tabunganku`:
+
+1. **Member Pass Header:** Menampilkan Nama Nasabah, Nomor Anggota/WhatsApp, Program (misal: 100rb/minggu), dan Periode 1447H.
+2. **Streak & Attendance Badges:**
+   - 🔥 **Disiplin Streak:** Menghitung jumlah minggu berturut-turut lunas tanpa putus.
+   - 🟢 **Total Stempel Lunas:** Cap stempel hijau zamrud dengan tulisan `LUNAS ✓`.
+   - 🟡 **Menunggu Verifikasi:** Jumlah minggu bukti transfer sedang diproses.
+   - 🎯 **Sisa Menuju Lebaran:** Hitungan sisa minggu hingga H-1 Idul Fitri.
+3. **50-Slot Check-in Matrix:** Grid 50 kotak stempel dengan aksi cek-in cepat untuk minggu berjalan.
+4. **Dual Mode View:** Switcher antara *📇 Mode Kartu Stamp Absensi* dan *📋 Mode Tabel Rekap*.
+5. **Cetak Kartu Absensi:** Dukungan print stylesheet `@media print` untuk mencetak lembar kartu iuran ukuran A5/B5.
+
+---
+
+### 4.5 Matriks Rekap Absensi 50 Minggu Admin (Admin Attendance Matrix Sheet)
+
+Admin Console dilengkapi lembar spreadsheet matriks kehadiran di halaman `/admin/absensi`:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                           MATRIKS REKAP ABSENSI 50 MINGGU (ADMIN CONSOLE)                       │
+├───────────────────┬──────────────┬────────┬────────┬────────┬────────┬────────┬───────┬─────────┤
+│ Nama Nasabah      │ No. WhatsApp │ Mg 1   │ Mg 2   │ Mg 3   │ ...    │ Mg 19  │ Mg 50 │ Total   │
+├───────────────────┼──────────────┼────────┼────────┼────────┼────────┼────────┼───────┼─────────┤
+│ 1. Ahmad Arif     │ 081234567890 │  🟢    │  🟢    │  🟢    │  ...   │   🟡   │  ⚪   │ 18/50   │
+│ 2. Siti Rahmawati │ 085711223344 │  🟢    │  🟢    │  🟢    │  ...   │   🟢   │  ⚪   │ 19/50   │
+│ 3. Budi Santoso   │ 081987654321 │  🟢    │  🟢    │  🔴    │  ...   │   ⚪   │  ⚪   │ 12/50   │
+└───────────────────┴──────────────┴────────┴────────┴────────┴────────┴────────┴───────┴─────────┘
+  Keterangan Warna:
+  🟢 = Lunas (VERIFIED)    🟡 = Menunggu Verifikasi (WAITING)    🔴 = Menunggak    ⚪ = Belum Masuk Waktu
+```
+
+1. **Sticky Left Columns:** Kolom Nama dan Nomor Telepon tetap terkunci di sisi kiri saat tabel di-scroll secara horizontal ke minggu ke-50.
+2. **1-Click Quick Cash Setoran:** Admin dapat mengklik sel minggu untuk langsung mencatat setoran tunai (*cash*) tanpa perlu upload foto bukti.
+3. **Filter Rekap Absensi:** Opsi filter cepat: *Semua Nasabah*, *Disiplin / Lunas*, *Ada Antrean Verifikasi*, *Memiliki Tunggakan*.
+4. **Export Lembar Absensi:** Tombol unduh lembar absensi ke format Excel (`.xlsx`) dan PDF.
+
+---
+
+### 4.6 Pusat Pengingat WhatsApp & Broadcast Center (WhatsApp Notification Center)
+
+Untuk menekan angka tunggakan dan mempermudah komunikasi pengurus:
+1. **Tombol Blast Pengingat Mingguan:** Admin dapat memicu template pesan WhatsApp ke nasabah yang belum cek-in pada minggu berjalan.
+2. **Template Pesan Dinamis:**
+   > *"Assalamu'alaikum Ibu/Bapak [Nama Nasabah], pengingat setoran tabungan Idul Fitri 1447H untuk **Minggu ke-[X] (Rp [Nominal])** telah dibuka. Yuk cek-in kartu tabungan Anda di: https://nabungid.com/tabunganku. Terima kasih & semoga berkah!"*
+3. **Integrasi WhatsApp Direct Link (`wa.me`):** Membuka aplikasi WhatsApp Web/Mobile pengurus secara instan dengan teks terisi otomatis.
+
+---
+
+### 4.7 Kwitansi Digital & Export File Riil
+
+1. **Kwitansi Digital Resmi:** Setiap setoran mingguan yang diverifikasi menghasilkan lembar kwitansi digital bertanda tangan elektronik/stempel QR Code yang dapat diunduh nasabah.
+2. **Real File Manifest Export:** Menggunakan library `xlsx` untuk menghasilkan dokumen Excel berformat rapi dan `jspdf` untuk dokumen cetak tanda terima H-1 Idul Fitri.
+
+---
+
+### 4.8 Master Data Dinamis & Zero Hardcode Policy
 
 Sesuai standar arsitektur `/pm` & `/backend`, seluruh entitas bisnis dikelola dinamis di database PostgreSQL via Admin Panel tanpa hardcode enum di kode program:
 
@@ -159,15 +225,15 @@ Sesuai standar arsitektur `/pm` & `/backend`, seluruh entitas bisnis dikelola di
 │                        DYNAMIC MASTER DATA ENGINE                      │
 ├────────────────────────────────┬───────────────────────────────────────┤
 │ 1. SavingsProgram              │ - Nominal Mingguan (25k, 50k, 100k,…) │
-│                                │ - Durasi Minggu Target                │
-│                                │ - Default Admin Fee                   │
+│                                │ - Durasi Minggu Target (50 Minggu)    │
+│                                │ - Default Admin Fee Program           │
 ├────────────────────────────────┼───────────────────────────────────────┤
 │ 2. ProductCategory             │ - Sembako Mentah (Daging, Telur, dll) │
 │                                │ - Makanan & Snack (Kue Kaleng, Sirup) │
 │                                │ - Perabotan & Home Living             │
 ├────────────────────────────────┼───────────────────────────────────────┤
 │ 3. ProductItem                 │ - Nama Barang, Satuan, Estimasi Harga │
-│                                │ - Foto Barang, Stok Tersedia          │
+│                                │ - Foto Barang, Status Ketersediaan    │
 ├────────────────────────────────┼───────────────────────────────────────┤
 │ 4. PackageBundle               │ - Bundling Items (Isi Paket Barang)   │
 │                                │ - Total Harga Paket Akumulasi         │
@@ -182,35 +248,35 @@ Sesuai standar arsitektur `/pm` & `/backend`, seluruh entitas bisnis dikelola di
 
 ## 5. System Architecture & Monorepo Structure
 
-Aplikasi dibangun menggunakan arsitektur **Turborepo Monorepo** untuk memastikan skalabilitas, efisiensi *build pipeline*, dan penggunaan tipe data terpadu (*Single Source of Truth*).
+Aplikasi dibangun menggunakan arsitektur **Turborepo Monorepo**:
 
 ```
 nabungid/
 ├── apps/
 │   ├── web/                        # Next.js 14/15 (App Router) + PWA Frontend
 │   │   ├── app/
-│   │   │   ├── (auth)/             # Login, Register, Forgot Password
-│   │   │   ├── (public)/           # High-Converting Landing Page, Simulasi
-│   │   │   ├── (nasabah)/          # Dashboard Nasabah, Ledger, Paket, Penarikan
-│   │   │   └── (admin)/            # Admin Console, Master Data, Verifikasi, Payout
-│   │   ├── components/             # Shadcn UI, Untitled UI, Custom Widgets
+│   │   │   ├── (auth)/             # Login, Register
+│   │   │   ├── (public)/           # High-Converting Landing Page 3D
+│   │   │   ├── (nasabah)/          # Dashboard, Tabunganku (Stamp Card), Paket, Penarikan, Profil
+│   │   │   └── (admin)/            # Dashboard, Absensi (Matrix), Verifikasi, Penarikan, Master Data, Distribusi
+│   │   ├── components/             # UI Components (Shadcn, Lucide, Custom Cards)
 │   │   ├── hooks/                  # Custom Hooks dengan Result Pattern
-│   │   ├── stores/                 # Zustand Global State (Auth, UI, Cart/Paket)
+│   │   ├── stores/                 # Zustand Global State (useAuthStore, useNasabahStore, useAdminStore)
 │   │   ├── styles/                 # Tailwind CSS & Design Tokens
 │   │   └── next.config.mjs         # PWA Configuration (next-pwa / serwist)
 │   │
 │   └── api/                        # Express.js + TypeScript REST Backend
 │       ├── src/
-│       │   ├── config/             # Env, Database, Supabase Client
+│       │   ├── config/             # Database, Supabase Client, Env
 │       │   ├── controllers/        # Request Handlers
-│       │   ├── services/           # Core Domain & Financial Calculation Logic
-│       │   ├── middleware/         # Auth Guard (JWT RBAC), Validation, Error Handler
+│       │   ├── services/           # Domain Logic (Payout, Ledger, Emergency, Storage)
+│       │   ├── middleware/         # Auth Guard (JWT RBAC), Error Middleware
 │       │   ├── routes/             # REST Endpoints (/api/v1/...)
 │       │   ├── exceptions/         # Custom Domain Exceptions
-│       │   └── utils/              # Result Pattern & Logger (Winston/Pino)
+│       │   └── utils/              # Result Pattern & Winston Logger
 │       ├── prisma/
 │       │   ├── schema.prisma       # Prisma Database Models
-│       │   └── migrations/         # Supabase PostgreSQL Migrations
+│       │   └── seed.ts             # Initial Database Seed Script
 │       └── tsconfig.json
 │
 ├── packages/
@@ -218,8 +284,8 @@ nabungid/
 │   │   ├── src/
 │   │   │   ├── types/              # DTOs, Enums, Entity Interfaces
 │   │   │   ├── schemas/            # Zod Validation Schemas
-│   │   │   ├── constants/          # App-wide Constants
-│   │   │   └── utils/              # Calculation Helpers (Payout, Cycle dates)
+│   │   │   ├── constants/          # App Constants
+│   │   │   └── calculations/       # Pure Logic (Payout, Emergency Validation)
 │   │   └── package.json
 │   ├── tsconfig/                   # Base TypeScript Configs
 │   └── eslint-config/              # Shared ESLint Rules
@@ -333,7 +399,7 @@ model SavingsProgram {
 
 model ProductCategory {
   id          String        @id @default(uuid())
-  name        String        @unique // Sembako, Kue Kaleng, Perabotan, Daging/Ayam
+  name        String        @unique // Sembako, Kue Kaleng, Perabotan
   slug        String        @unique
   description String?
   icon        String?       // Lucide icon name
@@ -346,8 +412,8 @@ model ProductCategory {
 model ProductItem {
   id            String              @id @default(uuid())
   categoryId    String
-  name          String              // e.g. "Daging Sapi Segar 1 Kg", "Biskuit Khong Guan 1600g"
-  unit          String              // "Kg", "Kaleng", "Liter", "Pcs"
+  name          String              // e.g. "Daging Sapi Segar 1 Kg"
+  unit          String              // "Kg", "Kaleng", "Liter", "Set"
   estimatedPrice Decimal            @db.Decimal(12, 2)
   imageUrl      String?
   description   String?
@@ -363,10 +429,10 @@ model ProductItem {
 
 model PackageBundle {
   id          String              @id @default(uuid())
-  name        String              // e.g. "Paket Sembako Lengkap", "Paket Kue & Snack Lebaran"
+  name        String              // e.g. "Paket Sembako Berkah Lebaran"
   slug        String              @unique
   description String?
-  bundlePrice Decimal             @db.Decimal(12, 2) // Total harga paket
+  bundlePrice Decimal             @db.Decimal(12, 2)
   imageUrl    String?
   isActive    Boolean             @default(true)
   createdAt   DateTime            @default(now())
@@ -393,7 +459,7 @@ model MemberSaving {
   userId              String
   cycleId             String
   programId           String
-  bundleId            String?              // Paket barang pilihan nasabah (opsional)
+  bundleId            String?
   status              SavingsStatus        @default(ACTIVE)
   notes               String?
   createdAt           DateTime             @default(now())
@@ -462,12 +528,12 @@ model EmergencyWithdrawal {
 model DistributionPayout {
   id                     String        @id @default(uuid())
   memberSavingId         String        @unique
-  totalSavedAmount       Decimal       @db.Decimal(12, 2) // Total akumulasi uang masuk
-  adminFeeAmount         Decimal       @db.Decimal(12, 2) // Potongan admin
-  packageGoodsAmount     Decimal       @db.Decimal(12, 2) // Potongan harga paket barang
-  emergencyDeductionAmount Decimal     @db.Decimal(12, 2) // Potongan penarikan darurat
-  netPayoutAmount        Decimal       @db.Decimal(12, 2) // Total bersih yang dibagikan
-  payoutDate             DateTime      // Waktu H-1 Idul Fitri
+  totalSavedAmount       Decimal       @db.Decimal(12, 2)
+  adminFeeAmount         Decimal       @db.Decimal(12, 2)
+  packageGoodsAmount     Decimal       @db.Decimal(12, 2)
+  emergencyDeductionAmount Decimal     @db.Decimal(12, 2)
+  netPayoutAmount        Decimal       @db.Decimal(12, 2)
+  payoutDate             DateTime
   isDisbursed            Boolean       @default(false)
   disbursedAt            DateTime?
   disbursedById          String?
@@ -483,8 +549,8 @@ model DistributionPayout {
 model AdminAuditLog {
   id          String   @id @default(uuid())
   adminId     String
-  action      String   // e.g. "VERIFY_PAYMENT", "APPROVE_WITHDRAWAL", "UPDATE_MASTER_PACKAGE"
-  entityName  String   // "WeeklyLedger", "EmergencyWithdrawal", "PackageBundle"
+  action      String   // e.g. "VERIFY_PAYMENT", "QUICK_CASH_ENTRY", "APPROVE_WITHDRAWAL"
+  entityName  String
   entityId    String
   oldValues   Json?
   newValues   Json?
@@ -501,26 +567,16 @@ model AdminAuditLog {
 
 ---
 
-### 6.2 Supabase Infrastructure, Database Connection & Storage Architecture
+### 6.2 Supabase Infrastructure & Connection Details
 
-Infrastruktur data dan penyimpanan file NabungID terpusat pada **Supabase PostgreSQL** dan **Supabase Bucket Storage** dengan detail arsitektur berikut:
-
-#### 1. Database Connection & Connection Pooling Configuration
-
-Sistem menggunakan arsitektur dual connection (Prisma Client + PgBouncer Pooler untuk runtime transaksi tinggi, serta Direct Connection untuk Prisma Migrations):
-
-- **Shared Pooler (Transaction Mode - Port 6543):** Digunakan oleh aplikasi runtime (`apps/api` Express.js) untuk efisiensi koneksi konkuren tanpa membebani batas koneksi PostgreSQL.
-- **Direct Connection (Session Mode - Port 5432):** Digunakan untuk Prisma CLI saat menjalankan migrasi schema (`npx prisma migrate dev` / `prisma migrate deploy`).
-
-##### Parameter Koneksi Supabase:
 - **Host:** `aws-0-ap-south-1.pooler.supabase.com`
-- **Port Pooler:** `6543`
-- **Port Direct:** `5432`
+- **Port Pooler (Transaction Mode):** `6543`
+- **Port Direct (Migration Session):** `5432`
 - **Database:** `postgres`
 - **User:** `postgres.ztaasxrrmfrzzplmupjh`
 - **Password:** `GHk6Npb6HahgsWH4`
+- **Project URL:** `https://ztaasxrrmfrzzplmupjh.supabase.co`
 
-##### Environment Variables (`apps/api/.env`):
 ```env
 # Runtime connection via PgBouncer Pooler (Port 6543)
 DATABASE_URL="postgresql://postgres.ztaasxrrmfrzzplmupjh:GHk6Npb6HahgsWH4@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
@@ -528,266 +584,80 @@ DATABASE_URL="postgresql://postgres.ztaasxrrmfrzzplmupjh:GHk6Npb6HahgsWH4@aws-0-
 # Direct connection for Prisma Migrations (Port 5432)
 DIRECT_URL="postgresql://postgres.ztaasxrrmfrzzplmupjh:GHk6Npb6HahgsWH4@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
 
-# Supabase Project API Credentials
 SUPABASE_URL="https://ztaasxrrmfrzzplmupjh.supabase.co"
-SUPABASE_ANON_KEY="<YOUR_SUPABASE_ANON_KEY>"
-SUPABASE_SERVICE_ROLE_KEY="<YOUR_SUPABASE_SERVICE_ROLE_KEY>"
 ```
 
 ---
 
-#### 2. Supabase Storage Architecture (File & Asset Management)
+### 6.3 Backend API Endpoints (`apps/api`)
 
-Untuk mengelola dokumen, bukti transaksi, dan aset gambar visual, dibuat 4 bucket storage dengan aturan keamanan (*Row-Level Security & Access Policies*) yang ketat:
+#### 1. Auth & Profile Endpoints (`/api/v1/auth`)
+- `POST /api/v1/auth/register` — Registrasi nasabah baru.
+- `POST /api/v1/auth/login` — Login nasabah / admin & return JWT Token.
+- `GET /api/v1/auth/me` — Ambil profil & role user aktif.
+- `POST /api/v1/auth/logout` — Revoke token session.
 
-| Nama Bucket | Visibilitas | Format File yang Diizinkan | Max File Size | Kebijakan Akses (RLS Policy) & Fungsi |
-| :--- | :---: | :---: | :---: | :--- |
-| **`payment-proofs`** | **Private** | `.jpg`, `.jpeg`, `.png`, `.webp`, `.pdf` | 5 MB | **Bukti Setoran Mingguan:** Nasabah hanya dapat mengunggah dan melihat bukti miliknya (`auth.uid() = user_id`). Admin memiliki akses `SELECT` dan `DELETE` penuh untuk verifikasi. |
-| **`product-assets`** | **Public** | `.jpg`, `.jpeg`, `.png`, `.webp`, `.svg` | 3 MB | **Katalog Barang & Paket:** Foto sembako mentah (daging, minyak, telur), kue kaleng, dan perabotan. Akses `SELECT` publik (Landing page/PWA), `INSERT/UPDATE/DELETE` khusus Admin. |
-| **`withdrawal-proofs`** | **Private** | `.jpg`, `.jpeg`, `.png`, `.webp`, `.pdf` | 5 MB | **Bukti Pencairan Dana Darurat:** Bukti transfer dana darurat yang diunggah oleh Admin ke Nasabah. Hanya dapat dilihat oleh Nasabah penerima dan Admin. |
-| **`avatars`** | **Public** | `.jpg`, `.jpeg`, `.png`, `.webp` | 2 MB | **Foto Profil Pengguna:** Foto identitas nasabah dan admin. Pemilik akun dapat update; publik dapat membaca. |
+#### 2. Nasabah PWA Endpoints (`/api/v1/nasabah`)
+- `GET /api/v1/nasabah/savings` — Data tabungan aktif nasabah.
+- `GET /api/v1/nasabah/savings/:id/ledger` — Data 50 minggu kartu absensi setoran nasabah.
+- `POST /api/v1/nasabah/savings/:id/pay-week` — Upload foto bukti transfer setoran.
+- `GET /api/v1/nasabah/savings/:id/simulation` — Simulasi real-time payout H-1 Idul Fitri.
+- `POST /api/v1/nasabah/withdrawals/request` — Permohonan penarikan darurat (Max 500k guard).
+- `GET /api/v1/nasabah/savings/:id/receipt/:weekNumber` — Unduh kwitansi digital resmi berstempel.
 
-##### Storage Helper Service (`apps/api/src/services/storage.service.ts`):
-- Menggunakan `@supabase/supabase-js` dengan `service_role` key untuk generate signed URLs berjangka waktu (untuk bucket private) dan upload file otomatis terenkripsi.
-- Kompresi gambar otomatis di sisi client/server menggunakan library WebP sebelum dikirim ke Supabase Storage untuk menghemat bandwidth.
-
----
-
-#### 3. Supabase Agent Skills Integration
-
-Untuk mempermudah integrasi, migrasi skema otomatis, inspeksi performa query, serta manipulasi data Supabase secara akurat oleh AI tools, diimplementasikan paket **Supabase Agent Skills**:
-
-```bash
-# Perintah instalasi CLI Agent Skills Supabase
-npx skills add supabase/agent-skills
-```
-
-Fungsi modul ini mencakup:
-- Validasi sintaks SQL & RLS Policies langsung terhadap database Supabase.
-- Verifikasi index database untuk optimasi query transaksi mingguan nasabah.
-- Pembuatan dan sinkronisasi bucket storage secara otomatis via CLI script.
-
----
-
-### 6.3 Backend API Contracts (`apps/api`)
-
-Seluruh endpoint backend mengadopsi standar **Safe Logic Flow**, **Guard Clauses**, **Result Pattern**, dan **JWT Auth Guard**.
-
-#### 1. Authentication Endpoints (`/api/v1/auth`)
-- `POST /api/v1/auth/register` — Registrasi nasabah baru (Zod: `name`, `phoneNumber`, `email`, `password`).
-- `POST /api/v1/auth/login` — Autentikasi user & pengembalian HTTP-Only Refresh Token + Short-lived Access Token JWT.
-- `GET /api/v1/auth/me` — Ambil profile & active role user yang sedang login.
-- `POST /api/v1/auth/logout` — Revoke token & clear session.
-
-#### 2. Public & Nasabah Program Endpoints (`/api/v1/programs`)
-- `GET /api/v1/programs/active` — Mengambil program & siklus tabungan yang sedang aktif untuk landing page.
-- `GET /api/v1/programs/catalog-packages` — Mengambil katalog paket sembako/snack/perabotan yang tersedia.
-- `POST /api/v1/nasabah/enroll` — Nasabah mendaftar program tabungan & memilih paket barang (Auth Nasabah).
-- `GET /api/v1/nasabah/savings` — Mengambil riwayat & kartu status tabungan aktif milik nasabah.
-- `GET /api/v1/nasabah/savings/:id/ledger` — Mengambil rincian 50 minggu setoran, tanggal jatuh tempo, dan status verifikasi.
-- `POST /api/v1/nasabah/savings/:id/pay-week` — Upload bukti pembayaran untuk minggu tertentu ke bucket `payment-proofs`.
-- `GET /api/v1/nasabah/savings/:id/simulation` — Simulasi proyeksi saldo pembagian H-1 Idul Fitri secara *real-time*.
-
-#### 3. Emergency Withdrawal Endpoints (`/api/v1/withdrawals`)
-- `POST /api/v1/nasabah/withdrawals/request` — Mengajukan penarikan darurat (Maks Rp 500.000, 1x limit guard).
-- `GET /api/v1/nasabah/withdrawals/status` — Memeriksa sisa limit dan status pengajuan penarikan darurat.
-
-#### 4. Admin Management & Verification Endpoints (`/api/v1/admin`) — *Admin Role Required*
-- `GET /api/v1/admin/dashboard/summary` — Statistik total dana terhimpun, total nasabah, tunggakan, dan penarikan darurat.
-- `GET /api/v1/admin/ledgers/pending` — Daftar setoran mingguan nasabah yang menunggu verifikasi admin.
-- `PATCH /api/v1/admin/ledgers/:id/verify` — Verifikasi atau tolak setoran mingguan nasabah.
+#### 3. Admin Console Endpoints (`/api/v1/admin`) — *Admin Role Required*
+- `GET /api/v1/admin/dashboard/summary` — Statistik KPI (Total Kas, Nasabah, Antrean, Klaim Darurat).
+- `GET /api/v1/admin/ledgers/matrix` — **Matriks Absensi 50 Minggu Seluruh Nasabah** dalam 1 query teroptimasi.
+- `POST /api/v1/admin/ledgers/quick-cash` — **Setor Tunai Cepat (Quick Cash Entry)** tanpa perlu foto bukti.
+- `GET /api/v1/admin/ledgers/pending` — Antrean verifikasi bukti transfer mingguan.
+- `PATCH /api/v1/admin/ledgers/:id/verify` — Approve / Reject bukti setoran mingguan.
+- `POST /api/v1/admin/broadcast/whatsapp-reminder` — Pemicu broadcast pengingat WA nasabah menunggak.
 - `GET /api/v1/admin/withdrawals` — Daftar permohonan penarikan darurat (`PENDING_APPROVAL`).
-- `PATCH /api/v1/admin/withdrawals/:id/decision` — Approve / Reject penarikan darurat dengan upload bukti transfer ke bucket `withdrawal-proofs`.
-- `POST /api/v1/admin/distribution/calculate-batch` — Kalkulasi otomatis pembagian dana seluruh nasabah untuk H-1 Idul Fitri.
-- `PATCH /api/v1/admin/distribution/:id/disburse` — Tandai dana dan barang telah diserahkan ke nasabah.
-- `GET /api/v1/admin/reports/manifest-export` — Export data manifest pembagian ke Excel / PDF.
+- `PATCH /api/v1/admin/withdrawals/:id/decision` — Approve / Reject penarikan darurat nasabah.
+- `POST /api/v1/admin/distribution/calculate-batch` — Kalkulasi batch payout seluruh nasabah untuk H-1 Lebaran.
+- `GET /api/v1/admin/reports/manifest-export` — Export manifest pembagian ke Excel (`.xlsx`) / PDF.
 
-#### 5. Admin Dynamic Master Data CRUD (`/api/v1/admin/master`) — *Zero Hardcode Policy*
-- `CRUD /api/v1/admin/master/cycles` — Kelola siklus tabungan (Tahun Hijriah, Tanggal H+1, Tanggal H-1).
-- `CRUD /api/v1/admin/master/programs` — Kelola nominal tabungan (100k, 50k, custom) & biaya admin program.
-- `CRUD /api/v1/admin/master/categories` — Kelola kategori produk barang (Sembako, Kue, Perabotan).
-- `CRUD /api/v1/admin/master/items` — Kelola item produk individual (Daging, Minyak, Telur, Toples, dll) beserta upload gambar ke bucket `product-assets`.
-- `CRUD /api/v1/admin/master/bundles` — Kelola paket bundling barang & penetapan total harga paket.
-
----
-
-### 6.4 Frontend UX/UI Architecture (`apps/web`)
-
-Sesuai panduan **UI/UX Pro Max** dan **Mobile & Tablet First Priority**:
-
-```
-                                  [ LANDING PAGE PUBLIK ]
-                                (Glassmorphism, Dark/Light,
-                                 Kalkulator Interaktif 100k,
-                                 Katalog Sembako & Perabot)
-                                             │
-                       ┌─────────────────────┴─────────────────────┐
-                       ▼                                           ▼
-             [ DASHBOARD NASABAH (PWA) ]                [ ADMIN MANAGEMENT PORTAL ]
-            - Progress Ring 50 Minggu                   - Stat KPI Cards (Total Kas, Pending)
-            - Kartu Setoran Mingguan Interaktif         - Verifikasi Setoran Quick-Action
-            - Selector Paket Barang                     - Modal Approval Penarikan Darurat
-            - Form Tarik Darurat (Max 500k Guard)       - Master Data Manager (Zero Hardcode)
-            - Rincian Akhir Payout H-1                  - Batch Distribution Engine & Export
-```
-
-#### 1. Visual Design & Theme System (UI/UX Pro Max)
-- **Design Style:** Modern Clean Glassmorphism dengan aksen Keberkahan, Kemakmuran, dan Depth Layer 3D.
-- **Color Palette:**
-  - *Primary Emerald:* `hsl(158, 64%, 28%)` (#0F5132) & `hsl(160, 84%, 39%)` (#059669) — Melambangkan ketenangan, keberkahan finansial, dan nuansa Idul Fitri.
-  - *Accent Warm Gold:* `hsl(38, 92%, 50%)` (#F59E0B) & `hsl(32, 95%, 44%)` (#D97706) — Melambangkan nilai tabungan dan kemilau Hari Raya.
-  - *Background Dark:* `hsl(222, 47%, 11%)` (#0B0F17) / Surface: `hsl(217, 33%, 17%)` (#1E293B).
-  - *Background Light:* `hsl(210, 40%, 98%)` (#F8FAFC) / Surface: `hsl(0, 0%, 100%)` (#FFFFFF).
-- **Typography:** **Plus Jakarta Sans** (Primary Heading & Body) dipadukan dengan font angka tabular monospaced untuk rincian nominal keuangan.
-- **Icons:** Resmi menggunakan **Lucide React SVG Icons** (Bebas emoji di UI).
-
----
-
-#### 2. Interactive 3D Motion & Visual Experience System
-
-Untuk memberikan impresi visual kelas dunia (*wow-factor*) yang memikat calon nasabah, landing page dilengkapi sistem motion 3D dan animasi interaktif:
-
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        3D MOTION & INTERACTIVE EXPERIENCE MATRIX                       │
-├──────────────────────────────┬─────────────────────────────────────────────────────────┤
-│ 1. 3D Hero Centerpiece       │ - Model 3D Celengan Kubah Emas / Ketupat Kristal 3D     │
-│    (Three.js / React Three)  │ - Interaktif mengapung (float) & merespons kursor mouse │
-│                              │ - Hamburan partikel koin emas saat CTA di-hover         │
-├──────────────────────────────┼─────────────────────────────────────────────────────────┤
-│ 2. 3D Parallax Tilt Cards    │ - Efek tilt 3D dinamis pada kartu katalog sembako & kue │
-│    (Framer Motion Physics)   │ - Efek pantulan cahaya kaca (glare reflection)          │
-│                              │ - Foto produk melayang terpisah (depth layer effect)    │
-├──────────────────────────────┼─────────────────────────────────────────────────────────┤
-│ 3. SVG Timeline Scroll Path  │ - Kurva SVG emas bercahaya yang otomatis tergambar      │
-│    (Scroll-Driven Animation) │   seiring scroll dari H+1 Idul Fitri ke H-1 Idul Fitri  │
-│                              │ - Pulse glow wave pada milestone minggu 1, 25, 48, 50   │
-├──────────────────────────────┼─────────────────────────────────────────────────────────┤
-│ 4. Sliding Number Calculator │ - Counter angka dinamis saat menggeser nominal mingguan │
-│    (@animate-ui)             │ - Spring physics animation pada cincin target tabungan  │
-├──────────────────────────────┼─────────────────────────────────────────────────────────┤
-│ 5. Interactive Parcel Builder│ - Drag & drop simulator sembako (daging, minyak, kue)   │
-│    (Gamified UX)             │ - Rekomendasi nominal nabung mingguan otomatis          │
-└──────────────────────────────┴─────────────────────────────────────────────────────────┘
-```
-
-##### Detail Komponen Interaktif:
-1. **Hero 3D Interactive Centerpiece (`@react-three/fiber` & `@react-three/drei`):**
-   - Objek 3D *Celengan Emas Berkah* yang berputar halus (*idle rotation*).
-   - Di Desktop: Merespons arah kursor mouse dengan sudut kemiringan hingga 15 derajat.
-   - Di Mobile/Tablet: Merespons *gyroscope device tilt* atau touch swipe ringan.
-   - Efek *ambient glow* dan *subtle floating golden sparkles* di latar belakang canvas.
-2. **Interactive Savings & Hampers Calculator with Sliding Numbers:**
-   - Slider nominal mingguan (Rp 25.000 s.d. Rp 500.000) menggunakan `@radix-ui/react-slider`.
-   - Transisi perubahan angka menggunakan `@animate-ui/primitives-texts-sliding-number` dengan efek digit berputar vertikal (*slot machine count-up*).
-   - Tampilan visual tumpukan koin 3D yang bertambah tinggi secara elastis sesuai nominal yang dipilih.
-3. **Interactive Parcel Builder ("Rakit Parcel Lebaran Impian"):**
-   - Calon nasabah dapat memilih/klik item sembako & snack (Daging Sapi 1kg, Minyak 2L, Telur 1 tray, Biskuit Kaleng, Set Toples Kaca) ke dalam keranjang virtual.
-   - Algoritma menghitung otomatis: *"Cukup menabung **Rp 35.000 / minggu** untuk mendapatkan paket ini di H-1 Idul Fitri!"*.
-4. **Interactive 50-Week Timeline Visualizer:**
-   - Garis kurva SVG bercahaya emas yang tersambung dari Minggu 1 (H+1 Lebaran) hingga Minggu 50 (H-1 Lebaran).
-   - Menggunakan Framer Motion `useScroll` dan `useTransform` untuk menganimasikan `pathLength` dari 0 ke 1 seiring halaman di-scroll ke bawah.
-5. **Emergency Withdrawal Safety Shield:**
-   - Animasi interaktif perisai keamanan yang mendemonstrasikan saldo tetap aman dan dapat dicairkan hingga Rp 500.000 (1x) tanpa potongan komisi penalti.
-6. **Live Social Proof & Countdown Ticker:**
-   - Hitung mundur *real-time* ke H-1 Idul Fitri tahun berikutnya (Hari : Jam : Menit : Detik).
-   - Floating toast transparan di sudut layar: *"Ibu Nurul baru saja mendaftar Paket Berkah 100k (2 menit yang lalu)"*.
-
----
-
-#### 3. Performance, 60 FPS Budget & Battery Optimization Guardrails
-
-Agar efek 3D dan animasi tetap sangat ringan, hemat baterai, dan responsif di semua perangkat:
-
-1. **Intersection Observer Auto-Pause:** Canvas Three.js dan loop animasi partikel otomatis di-*pause* saat elemen berada di luar viewport layar pengguna.
-2. **Graceful Fallback for Low-End Devices & Mobile:** Jika terdeteksi GPU terbatas atau framerate drop di bawah 45 FPS, sistem otomatis mendowngrade animasi 3D ke **CSS 3D Transforms + SVG Lottie Animation** yang super ringan.
-3. **Reduced Motion Accessibility:** Mendukung preferensi sistem `@media (prefers-reduced-motion: reduce)` dengan mengganti animasi berputar menjadi transisi *subtle fade-in*.
-4. **Lighthouse Performance Targets:** Memastikan skor Google Lighthouse Landing Page:
-   - **Performance:** $\ge 90$
-   - **First Contentful Paint (FCP):** $< 1.2\text{ detik}$
-   - **Largest Contentful Paint (LCP):** $< 2.0\text{ detik}$
-   - **Cumulative Layout Shift (CLS):** $< 0.05$ (Bebas layout shift saat aset 3D dimuat).
-
----
-
-#### 4. Nasabah PWA Experience
-- **Mobile-First Tab Bar:** Beranda, Tabunganku, Katalog Paket, Penarikan, Profil.
-- **Visual Milestone Tracker:** Circular progress ring & strip 50 kartu mingguan dengan badge status (`Lunas`, `Menunggu Verifikasi`, `Belum Bayar`).
-- **Emergency Withdrawal Modal:** Form penarikan dengan real-time validator guard yang otomatis mendisable tombol submit jika saldo kurang atau sudah pernah menarik Rp 500.000.
+#### 4. Master Data CRUD (`/api/v1/admin/master/*`) — *Zero Hardcode Engine*
+- `CRUD /api/v1/admin/master/cycles` — Kelola tahun siklus (1447H, Tanggal Mulai & Akhir).
+- `CRUD /api/v1/admin/master/programs` — Kelola program tabungan (100k, 50k, 25k, custom) & biaya admin.
+- `CRUD /api/v1/admin/master/categories` — Kelola kategori produk (Sembako, Kue, Perabotan).
+- `CRUD /api/v1/admin/master/items` — Kelola item produk individual (Daging, Minyak, Telur, Toples).
+- `CRUD /api/v1/admin/master/bundles` — Kelola bundling paket parcel Lebaran.
 
 ---
 
 ## 7. Quality Assurance & Testing Strategy (`/qa`)
 
-Berdasarkan prinsip **Shift-Left Testing**, tim QA telah menyusun matriks uji komprehensif untuk mencegah celah keamanan, salah hitung finansial, dan kesalahan logika data (*data misconception*).
+Berdasarkan prinsip **Shift-Left Testing**, tim QA telah menyusun matriks uji komprehensif:
 
-### 7.1 Financial Calculation & Business Logic Test Matrix
+### 7.1 Matriks Uji Finansial & Bisnis
 
-| ID Kasus | Deskripsi Skenario Uji | Input Data | Hasil yang Diharapkan (Expected Outcome) | Severity |
+| ID Kasus | Deskripsi Skenario Uji | Input Data | Hasil yang Diharapkan | Severity |
 | :--- | :--- | :--- | :--- | :--- |
-| **TC-FIN-01** | Hitung Pembagian Normal (Lunas 50 Minggu) | Tabungan: 50 x 100k (5jt), Admin: 25k, Paket: 400k, Penarikan: 0 | Payout Bersih: Rp 4.575.000 + Status Barang 'SIAP_DISTRIBUSI'. | **P0 (Critical)** |
-| **TC-FIN-02** | Hitung Pembagian dengan Penarikan Darurat Maksimal | Tabungan: 5jt, Admin: 25k, Paket: 400k, Penarikan Darurat: 500k | Payout Bersih: Rp 4.075.000. | **P0 (Critical)** |
-| **TC-FIN-03** | Pembayaran Parsial (Menunggak 5 Minggu) | Terbayar: 45 x 100k (4.5jt), Admin: 25k, Paket: 400k, Penarikan: 0 | Payout Bersih: Rp 4.075.000 (Sistem mencatat 5 minggu belum dibayar). | **P0 (Critical)** |
-| **TC-FIN-04** | Saldo Tabungan Tidak Cukup untuk Paket Barang | Tabungan: 300k, Admin: 25k, Paket Barang: 400k | Sistem mengeluarkan Alert: Dana tabungan tidak mencukupi paket barang pilihan. Admin/Nasabah dialihkan ke penyesuaian paket. | **P0 (Critical)** |
-| **TC-EMG-01** | Penarikan Darurat Melebihi Limit Rp 500.000 | Request Penarikan: Rp 500.001 | Request ditolak oleh Guard Clause Backend (`400 Bad Request: Nominal melebihi limit maksimal Rp 500.000`). | **P0 (Critical)** |
-| **TC-EMG-02** | Percobaan Penarikan Darurat Kedua Kali | User telah sukses withdraw 500k, submit request baru 200k | Request ditolak (`400 Bad Request: Batas frekuensi penarikan darurat (1x) telah tercapai`). | **P0 (Critical)** |
-| **TC-EMG-03** | Penarikan Darurat saat Saldo Belum Cukup | Saldo: 300k, Request Penarikan: 500k | Request ditolak (`400 Bad Request: Saldo tabungan berjalan tidak mencukupi`). | **P0 (Critical)** |
-
----
-
-### 7.2 Security, RBAC, & Zero Hardcode Audit Checklist
-
-- [x] **IDOR Protection:** Endpoint `/api/v1/nasabah/savings/:id` memvalidasi kepemilikan data (`saving.userId === authenticatedUser.id`).
-- [x] **RBAC Enforcement:** Seluruh endpoint `/api/v1/admin/*` dilindungi middleware `requireAdminRole`. Percobaan akses oleh nasabah menghasilkan `403 Forbidden`.
-- [x] **Zero Hardcode Audit:** Data kategori barang, nominal paket mingguan, dan nama hampers 100% tersimpan di tabel database dan dapat diedit via UI Admin tanpa redeploy.
-- [x] **Data Misconception Check:** Filter daftar tabungan nasabah di Admin Panel menyediakan opsi filter eksplisit: `Semua`, `Dengan Paket Barang`, `Tanpa Paket Barang (Uang Saja)`, dan `Memiliki Tunggakan`.
+| **TC-FIN-01** | Hitung Pembagian Normal (Lunas 50 Minggu) | Tabungan: 50 x 100k (5jt), Admin: 25k, Paket: 318k, Darurat: 0 | Payout Bersih: Rp 4.657.000 + Status Barang 'SIAP_DISTRIBUSI'. | **P0 (Critical)** |
+| **TC-FIN-02** | Hitung Pembagian dengan Penarikan Darurat Maksimal | Tabungan: 5jt, Admin: 25k, Paket: 318k, Penarikan: 500k | Payout Bersih: Rp 4.157.000. | **P0 (Critical)** |
+| **TC-FIN-03** | Pembayaran Parsial (Menunggak 5 Minggu) | Terbayar: 45 x 100k (4.5jt), Admin: 25k, Paket: 318k, Darurat: 0 | Payout Bersih: Rp 4.157.000 (Sistem mencatat 5 minggu belum dibayar). | **P0 (Critical)** |
+| **TC-FIN-04** | Saldo Tabungan Tidak Cukup untuk Paket Barang | Tabungan: 300k, Admin: 25k, Paket Barang: 400k | Alert: Saldo tabungan tidak mencukupi paket barang pilihan. | **P0 (Critical)** |
+| **TC-EMG-01** | Penarikan Darurat Melebihi Limit Rp 500.000 | Request Penarikan: Rp 500.001 | Ditolak Guard Clause Backend (`400 Bad Request: Maksimal Rp 500.000`). | **P0 (Critical)** |
+| **TC-EMG-02** | Percobaan Penarikan Darurat Kedua Kali | User telah sukses withdraw 500k, submit request baru | Ditolak (`400 Bad Request: Batas frekuensi 1x tercapai`). | **P0 (Critical)** |
+| **TC-EMG-03** | Penarikan Darurat saat Saldo Belum Cukup | Saldo: 300k, Request Penarikan: 500k | Ditolak (`400 Bad Request: Saldo berjalan tidak mencukupi`). | **P0 (Critical)** |
+| **TC-MAT-01** | Performa Query Matriks Absensi 50 Minggu | Query 50 nasabah x 50 minggu | Query selesai dalam waktu < 200ms tanpa N+1 query. | **P1 (High)** |
+| **TC-MAT-02** | Quick Cash Entry oleh Admin | Klik centang tunai minggu ke-19 nasabah A | Status instan menjadi `VERIFIED`, total kas bertambah, dan streak nasabah naik. | **P1 (High)** |
+| **TC-IDOR-01** | Proteksi IDOR Akses Ledger Nasabah Lain | Nasabah A request `/api/v1/nasabah/savings/:idB/ledger` | Respons `403 Forbidden: Anda tidak memiliki akses ke tabungan ini`. | **P0 (Critical)** |
 
 ---
 
 ## 8. Implementation Roadmap & Milestones
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                             PROJECT ROADMAP (6 WEEKS)                            │
-├──────────────┬─────────────────────────────────────────────────┬─────────────────┤
-│ Sprint       │ Fokus Deliverable                               │ Tim Terkait     │
-├──────────────┼─────────────────────────────────────────────────┼─────────────────┤
-│ **Sprint 1** │ Inisialisasi Turborepo, Prisma Schema Supabase, │ Full-Stack      │
-│ (Minggu 1)   │ Shared Zod DTOs, Better Auth & RBAC Setup       │ (/be, /fe)      │
-├──────────────┼─────────────────────────────────────────────────┼─────────────────┤
-│ **Sprint 2** │ Core Backend Services (Ledger, Calculation      │ Backend & QA    │
-│ (Minggu 2)   │ Engine, Emergency Withdrawal Guard Clauses)     │ (/be, /qa)      │
-├──────────────┼─────────────────────────────────────────────────┼─────────────────┤
-│ **Sprint 3** │ Admin Dynamic Master Data APIs & Admin UI       │ Full-Stack      │
-│ (Minggu 3)   │ (Paket, Barang, Sembako, Siklus, Admin Fee)     │ (/be, /fe)      │
-├──────────────┼─────────────────────────────────────────────────┼─────────────────┤
-│ **Sprint 4** │ High-Converting Landing Page (UI/UX Pro Max),   │ Frontend & PM   │
-│ (Minggu 4)   │ Interactive Calculator, PWA Nasabah Dashboard   │ (/fe, /pm)      │
-├──────────────┼─────────────────────────────────────────────────┼─────────────────┤
-│ **Sprint 5** │ Nasabah Ledger Tracker, Form Tarik Darurat,     │ Full-Stack & QA │
-│ (Minggu 5)   │ Verifikasi Setoran & Batch Payout Engine H-1    │ (/fe, /be, /qa) │
-├──────────────┼─────────────────────────────────────────────────┼─────────────────┤
-│ **Sprint 6** │ E2E Testing, Security & Load Audit, PWA Audit,  │ QA & Lead PM    │
-│ (Minggu 6)   │ Deployment ke Vercel & Production Release       │ (/qa, /pm)      │
-└──────────────┴─────────────────────────────────────────────────┴─────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                       NABUNGID DEVELOPMENT ROADMAP                                     │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ [ MILESTONE 1: Core Foundation & 3D Landing Page ]  ──▶ SELESAI (3D Ayam, Calculator, Monorepo)        │
+│ [ MILESTONE 2: PWA Nasabah & Kartu Absensi Stamp ]   ──▶ SELESAI (WeeklyCheckinCard, Dashboard, Payout) │
+│ [ MILESTONE 3: Admin Console & Master Data Engine ] ──▶ SELESAI (CRUD Dinamis, Verifikasi, Payout H-1) │
+│ [ MILESTONE 4: Admin Matrix Attendance & Quick Cash] ──▶ TAHAP BERIKUTNYA (/admin/absensi & WA Blast) │
+│ [ MILESTONE 5: Database Live Migration & Seeding ]  ──▶ TAHAP BERIKUTNYA (Supabase PostgreSQL Sync)   │
+│ [ MILESTONE 6: Automated Test Suite & Production ]  ──▶ TAHAP AKHIR (Vitest, Lighthouse, Vercel Deploy)│
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
-
----
-
-## 9. Success Metrics (KPIs)
-
-1. **Conversion Rate Landing Page:** $\ge 12\%$ dari pengunjung landing page melakukan registrasi dan memilih program tabungan.
-2. **Payment Compliance Rate:** $\ge 90\%$ nasabah melakukan setoran tepat waktu setiap minggunya melalui reminder PWA.
-3. **Calculation Accuracy:** $100\%$ akurasi pada formula pembagian akhir H-1 Idul Fitri tanpa selisih kas 1 rupiah pun.
-4. **System Response Time:** P95 API Latency $< 150\text{ ms}$, Core Web Vitals (LCP $< 1.8\text{ s}$, FID $< 100\text{ ms}$, CLS $< 0.05$).
-5. **Emergency Withdrawal SLA:** Verifikasi permohonan penarikan darurat selesai dalam $< 24$ jam kerja oleh Admin.
-
----
-
-## 10. Open Questions & Design Decisions
-
-1. **Mekanisme Pembayaran Setoran Mingguan:** Apakah pada Fase 1 cukup dengan pencatatan manual oleh Admin + Upload bukti transfer oleh Nasabah, atau langsung diintegrasikan dengan Payment Gateway otomatis (Midtrans/Xendit QRIS)? *(Rekomendasi Fase 1: Manual + Bukti Transfer, Fase 2: Otomatisasi QRIS)*.
-2. **Distribusi Barang Fisik (Logistik):** Apakah pengambilan paket sembako/perabotan dilakukan secara terpusat di kantor/posko koordinator, atau memerlukan integrasi tarif kurir ekspedisi pengantaran ke rumah? *(Rekomendasi Fase 1: Penjemputan di Posko/Pengambilan Terpusat oleh Nasabah)*.
-
----
-*Dokumen PRD ini telah divalidasi dan disepakati oleh seluruh Lead Role (`/pm`, `/frontend`, `/backend`, `/qa`) sebagai acuan tunggal pengerjaan proyek NabungID.*
