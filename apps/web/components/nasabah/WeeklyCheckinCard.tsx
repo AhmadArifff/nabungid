@@ -22,6 +22,7 @@ import {
 import { WeeklyLedgerItem } from '@nabungid/shared';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useNasabahStore } from '../../stores/useNasabahStore';
+import { DigitalReceiptModal } from './DigitalReceiptModal';
 
 interface WeeklyCheckinCardProps {
   ledgers: WeeklyLedgerItem[];
@@ -37,6 +38,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
   const [viewMode, setViewMode] = useState<'STAMP_CARD' | 'TABLE_VIEW'>('STAMP_CARD');
   const [filterMode, setFilterMode] = useState<'ALL' | 'VERIFIED' | 'WAITING' | 'PENDING'>('ALL');
   const [printSuccessToast, setPrintSuccessToast] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState<WeeklyLedgerItem | null>(null);
 
   // Statistics
   const verifiedCount = ledgers.filter((l) => l.status === 'VERIFIED').length;
@@ -265,13 +267,17 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
                 {/* 🌟 Authentic Stamp Badge Section */}
                 <div className="mt-2 pt-2 border-t border-white/5">
                   {isVerified && (
-                    <div className="relative flex items-center justify-center p-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-300">
+                    <button
+                      onClick={() => setSelectedReceipt(item)}
+                      title="Klik untuk melihat & unduh Kwitansi Digital Resmi"
+                      className="w-full relative flex items-center justify-center p-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-300 transition-colors group/stamp cursor-pointer"
+                    >
                       {/* Stamp Seal Effect */}
-                      <div className="flex items-center space-x-1 text-[11px] font-black tracking-wider uppercase">
+                      <div className="flex items-center space-x-1 text-[11px] font-black tracking-wider uppercase group-hover/stamp:scale-105 transition-transform">
                         <Check className="w-3.5 h-3.5 stroke-[3] text-emerald-400" />
-                        <span>LUNAS</span>
+                        <span>LUNAS ✓</span>
                       </div>
-                    </div>
+                    </button>
                   )}
 
                   {isWaiting && (
@@ -399,6 +405,15 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Digital Receipt Modal */}
+      <DigitalReceiptModal
+        isOpen={Boolean(selectedReceipt)}
+        ledger={selectedReceipt}
+        userName={user?.name || 'Ahmad Arif'}
+        userPhone={user?.phoneNumber || '081234567890'}
+        onClose={() => setSelectedReceipt(null)}
+      />
     </div>
   );
 };

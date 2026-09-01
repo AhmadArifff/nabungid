@@ -17,6 +17,7 @@ import { useAdminStore } from '../../stores/useAdminStore';
 
 const MENU_ITEMS = [
   { href: '/admin/dashboard', label: 'Dashboard Ringkasan', icon: LayoutDashboard },
+  { href: '/admin/absensi', label: 'Buku Absensi (50 Minggu)', icon: Users },
   { href: '/admin/verifikasi', label: 'Verifikasi Setoran', icon: CheckSquare, badgeKey: 'pendingLedgers' },
   { href: '/admin/penarikan', label: 'Persetujuan Darurat', icon: ShieldAlert, badgeKey: 'pendingWithdrawals' },
   { href: '/admin/master-data', label: 'Master Data (Zero Hardcode)', icon: Database },

@@ -70,6 +70,159 @@ export interface PendingWithdrawalItem extends EmergencyWithdrawalRequest {
   currentBalance: number;
 }
 
+export interface AttendanceMatrixMember {
+  id: string;
+  name: string;
+  phone: string;
+  weeklyNominal: number;
+  bundleName: string;
+  verifiedCount: number;
+  waitingCount: number;
+  unpaidCount: number;
+  totalSaved: number;
+  streakCount: number;
+  ledgers: Array<{
+    weekNumber: number;
+    status: 'VERIFIED' | 'WAITING_VERIFICATION' | 'PENDING_PAYMENT' | 'REJECTED';
+    amount: number;
+    paidDate?: string;
+    paymentMethod?: 'CASH' | 'BANK_TRANSFER' | 'QRIS';
+  }>;
+}
+
+// Generate 50 weeks for attendance matrix mock members
+const generateMatrixLedgers = (verifiedWeeks: number, hasWaitingWeek = false, weeklyAmount = 100000) => {
+  return Array.from({ length: 50 }, (_, i) => {
+    const week = i + 1;
+    let status: 'VERIFIED' | 'WAITING_VERIFICATION' | 'PENDING_PAYMENT' | 'REJECTED' = 'PENDING_PAYMENT';
+    let paidDate: string | undefined = undefined;
+    let paymentMethod: 'CASH' | 'BANK_TRANSFER' = 'BANK_TRANSFER';
+
+    if (week <= verifiedWeeks) {
+      status = 'VERIFIED';
+      paidDate = '2026-08-10T00:00:00.000Z';
+    } else if (hasWaitingWeek && week === verifiedWeeks + 1) {
+      status = 'WAITING_VERIFICATION';
+      paidDate = new Date().toISOString();
+    }
+
+    return {
+      weekNumber: week,
+      status,
+      amount: weeklyAmount,
+      paidDate,
+      paymentMethod,
+    };
+  });
+};
+
+const initialAttendanceMembers: AttendanceMatrixMember[] = [
+  {
+    id: 'mem-01',
+    name: 'Ahmad Arif',
+    phone: '081234567890',
+    weeklyNominal: 100000,
+    bundleName: 'Paket Sembako Berkah',
+    verifiedCount: 18,
+    waitingCount: 1,
+    unpaidCount: 31,
+    totalSaved: 1800000,
+    streakCount: 18,
+    ledgers: generateMatrixLedgers(18, true, 100000),
+  },
+  {
+    id: 'mem-02',
+    name: 'Siti Rahmawati',
+    phone: '085711223344',
+    weeklyNominal: 100000,
+    bundleName: 'Paket Kue & Snack Spesial',
+    verifiedCount: 19,
+    waitingCount: 0,
+    unpaidCount: 31,
+    totalSaved: 1900000,
+    streakCount: 19,
+    ledgers: generateMatrixLedgers(19, false, 100000),
+  },
+  {
+    id: 'mem-03',
+    name: 'Budi Santoso',
+    phone: '081987654321',
+    weeklyNominal: 100000,
+    bundleName: 'Paket Perabotan Dapur',
+    verifiedCount: 15,
+    waitingCount: 1,
+    unpaidCount: 34,
+    totalSaved: 1500000,
+    streakCount: 15,
+    ledgers: generateMatrixLedgers(15, true, 100000),
+  },
+  {
+    id: 'mem-04',
+    name: 'Dewi Lestari',
+    phone: '082133445566',
+    weeklyNominal: 100000,
+    bundleName: 'Tanpa Paket Barang',
+    verifiedCount: 17,
+    waitingCount: 0,
+    unpaidCount: 33,
+    totalSaved: 1700000,
+    streakCount: 17,
+    ledgers: generateMatrixLedgers(17, false, 100000),
+  },
+  {
+    id: 'mem-05',
+    name: 'Eko Prasetyo',
+    phone: '081377889900',
+    weeklyNominal: 50000,
+    bundleName: 'Paket Sembako Berkah',
+    verifiedCount: 18,
+    waitingCount: 0,
+    unpaidCount: 32,
+    totalSaved: 900000,
+    streakCount: 18,
+    ledgers: generateMatrixLedgers(18, false, 50000),
+  },
+  {
+    id: 'mem-06',
+    name: 'Nurul Hidayah',
+    phone: '081566778899',
+    weeklyNominal: 100000,
+    bundleName: 'Paket Kue & Snack Spesial',
+    verifiedCount: 12,
+    waitingCount: 0,
+    unpaidCount: 38,
+    totalSaved: 1200000,
+    streakCount: 12,
+    ledgers: generateMatrixLedgers(12, false, 100000),
+  },
+  {
+    id: 'mem-07',
+    name: 'Hendra Wijaya',
+    phone: '087811224455',
+    weeklyNominal: 200000,
+    bundleName: 'Paket Perabotan Dapur',
+    verifiedCount: 18,
+    waitingCount: 1,
+    unpaidCount: 31,
+    totalSaved: 3600000,
+    streakCount: 18,
+    ledgers: generateMatrixLedgers(18, true, 200000),
+  },
+  {
+    id: 'mem-08',
+    name: 'Rina Fitriani',
+    phone: '089633445577',
+    weeklyNominal: 100000,
+    bundleName: 'Paket Sembako Berkah',
+    verifiedCount: 16,
+    waitingCount: 0,
+    unpaidCount: 34,
+    totalSaved: 1600000,
+    streakCount: 16,
+    ledgers: generateMatrixLedgers(16, false, 100000),
+  },
+];
+
 interface AdminState {
   programs: SavingsProgram[];
   categories: ProductCategory[];
@@ -77,6 +230,7 @@ interface AdminState {
   bundles: PackageBundle[];
   pendingLedgers: PendingLedgerItem[];
   pendingWithdrawals: PendingWithdrawalItem[];
+  attendanceMembers: AttendanceMatrixMember[];
 
   // Master Data Actions
   addProductItem: (item: Omit<ProductItem, 'id'>) => void;
@@ -90,6 +244,9 @@ interface AdminState {
   // Verification Actions
   verifyLedger: (id: string, approve: boolean, rejectionReason?: string) => void;
   approveWithdrawal: (id: string, approve: boolean, proofImageUrl?: string, rejectionReason?: string) => void;
+
+  // Matrix Attendance Actions
+  quickCashCheckin: (memberId: string, weekNumber: number) => { success: boolean; message: string };
 }
 
 export const useAdminStore = create<AdminState>()(
@@ -118,6 +275,7 @@ export const useAdminStore = create<AdminState>()(
       categories: initialCategories,
       items: initialItems,
       bundles: initialBundles,
+      attendanceMembers: initialAttendanceMembers,
 
       pendingLedgers: [
         {
@@ -209,6 +367,45 @@ export const useAdminStore = create<AdminState>()(
         set((state) => ({
           pendingWithdrawals: state.pendingWithdrawals.filter((w) => w.id !== id),
         }));
+      },
+
+      quickCashCheckin: (memberId, weekNumber) => {
+        set((state) => ({
+          attendanceMembers: state.attendanceMembers.map((m) => {
+            if (m.id !== memberId) return m;
+
+            const updatedLedgers = m.ledgers.map((l) => {
+              if (l.weekNumber === weekNumber) {
+                return {
+                  ...l,
+                  status: 'VERIFIED' as const,
+                  paymentMethod: 'CASH' as const,
+                  paidDate: new Date().toISOString(),
+                };
+              }
+              return l;
+            });
+
+            const verifiedCount = updatedLedgers.filter((l) => l.status === 'VERIFIED').length;
+            const waitingCount = updatedLedgers.filter((l) => l.status === 'WAITING_VERIFICATION').length;
+            const unpaidCount = 50 - verifiedCount - waitingCount;
+            const totalSaved = updatedLedgers
+              .filter((l) => l.status === 'VERIFIED')
+              .reduce((sum, l) => sum + l.amount, 0);
+
+            return {
+              ...m,
+              ledgers: updatedLedgers,
+              verifiedCount,
+              waitingCount,
+              unpaidCount,
+              totalSaved,
+              streakCount: verifiedCount,
+            };
+          }),
+        }));
+
+        return { success: true, message: `Setoran tunai Minggu ke-${weekNumber} berhasil diverifikasi!` };
       },
     }),
     {
