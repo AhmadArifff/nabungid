@@ -81,19 +81,24 @@ export class AuthService {
     return Result.ok({ user: userProfile, token });
   }
 
-  static async login(input: LoginInput) {
-    const { phoneNumber, password } = input;
+  static async login(input: { phoneNumber?: string; email?: string; identifier?: string; password: string }) {
+    const rawIdentifier = input.phoneNumber || input.email || input.identifier;
+    if (!rawIdentifier) {
+      return Result.fail('Nomor WhatsApp atau email wajib diisi.', 400);
+    }
 
-    // Guard: Find user by phone number
-    const user = await prisma.user.findUnique({
-      where: { phoneNumber },
+    // Guard: Find user by phone number or email
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ phoneNumber: rawIdentifier }, { email: rawIdentifier }],
+      },
     });
     if (!user) {
       return Result.fail('Nomor telepon atau kata sandi tidak sesuai.', 401);
     }
 
     // Guard: Verify password hash
-    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+    const isValidPassword = await bcrypt.compare(input.password, user.passwordHash);
     if (!isValidPassword) {
       return Result.fail('Nomor telepon atau kata sandi tidak sesuai.', 401);
     }

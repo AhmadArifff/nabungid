@@ -176,7 +176,7 @@ async function main() {
   console.log('✅ Product items seeded.');
 
   // 6. Seed Package Bundles
-  await prisma.packageBundle.upsert({
+  const bundleSembako = await prisma.packageBundle.upsert({
     where: { slug: 'paket-sembako-lengkap' },
     update: {},
     create: {
@@ -223,6 +223,64 @@ async function main() {
   });
 
   console.log('✅ Package bundles seeded successfully.');
+
+  // 6. Enroll Demo Nasabah into MemberSaving with 50 Weekly Ledgers
+  let memberSaving = await prisma.memberSaving.findFirst({
+    where: { userId: nasabah.id, cycleId: cycle.id },
+  });
+
+  if (!memberSaving) {
+    memberSaving = await prisma.memberSaving.create({
+      data: {
+        userId: nasabah.id,
+        cycleId: cycle.id,
+        programId: program.id,
+        bundleId: bundleSembako.id,
+        status: 'ACTIVE',
+      },
+    });
+
+    // Create 50 Weekly Ledgers
+    const ledgerData = Array.from({ length: 50 }, (_, i) => {
+      const weekNumber = i + 1;
+      const dueDate = new Date(startDate);
+      dueDate.setDate(dueDate.getDate() + (weekNumber - 1) * 7);
+
+      let status: 'VERIFIED' | 'WAITING_VERIFICATION' | 'PENDING_PAYMENT' = 'PENDING_PAYMENT';
+      let paidDate: Date | null = null;
+      let paymentMethod: 'CASH' | 'BANK_TRANSFER' = 'BANK_TRANSFER';
+      let verifiedById: string | null = null;
+      let verifiedAt: Date | null = null;
+
+      if (weekNumber <= 18) {
+        status = 'VERIFIED';
+        paidDate = dueDate;
+        verifiedById = admin.id;
+        verifiedAt = dueDate;
+      } else if (weekNumber === 19) {
+        status = 'WAITING_VERIFICATION';
+        paidDate = new Date();
+      }
+
+      return {
+        memberSavingId: memberSaving!.id,
+        weekNumber,
+        dueDate,
+        paidDate,
+        amount: 100000,
+        paymentMethod,
+        status,
+        verifiedById,
+        verifiedAt,
+      };
+    });
+
+    await prisma.weeklyLedger.createMany({
+      data: ledgerData,
+    });
+  }
+
+  console.log('✅ Demo Nasabah enrolled with 50 Weekly Ledgers.');
   console.log('🎉 Seeding completed!');
 }
 
