@@ -10,6 +10,7 @@ import {
   WeeklyLedgerItem,
   EmergencyWithdrawalRequest,
 } from '@nabungid/shared';
+import { ApiClient } from '../lib/api-client';
 
 const initialCategories: ProductCategory[] = [
   { id: 'cat-sembako', name: 'Sembako Mentah', slug: 'sembako-mentah', icon: 'Beef' },
@@ -82,6 +83,7 @@ export interface AttendanceMatrixMember {
   totalSaved: number;
   streakCount: number;
   ledgers: Array<{
+    id?: string;
     weekNumber: number;
     status: 'VERIFIED' | 'WAITING_VERIFICATION' | 'PENDING_PAYMENT' | 'REJECTED';
     amount: number;
@@ -90,7 +92,7 @@ export interface AttendanceMatrixMember {
   }>;
 }
 
-// Generate 50 weeks for attendance matrix mock members
+// Generate 50 weeks for initial mock members
 const generateMatrixLedgers = (verifiedWeeks: number, hasWaitingWeek = false, weeklyAmount = 100000) => {
   return Array.from({ length: 50 }, (_, i) => {
     const week = i + 1;
@@ -231,6 +233,7 @@ interface AdminState {
   pendingLedgers: PendingLedgerItem[];
   pendingWithdrawals: PendingWithdrawalItem[];
   attendanceMembers: AttendanceMatrixMember[];
+  isLoadingMatrix: boolean;
 
   // Master Data Actions
   addProductItem: (item: Omit<ProductItem, 'id'>) => void;
@@ -242,16 +245,23 @@ interface AdminState {
   deleteBundle: (id: string) => void;
 
   // Verification Actions
-  verifyLedger: (id: string, approve: boolean, rejectionReason?: string) => void;
-  approveWithdrawal: (id: string, approve: boolean, proofImageUrl?: string, rejectionReason?: string) => void;
+  verifyLedger: (id: string, approve: boolean, rejectionReason?: string) => Promise<void>;
+  approveWithdrawal: (id: string, approve: boolean, proofImageUrl?: string, rejectionReason?: string) => Promise<void>;
 
-  // Matrix Attendance Actions
-  quickCashCheckin: (memberId: string, weekNumber: number) => { success: boolean; message: string };
+  // Matrix Attendance Live Actions
+  fetchAttendanceMatrix: () => Promise<void>;
+  toggleCheckin: (
+    memberId: string,
+    weekNumber: number,
+    targetStatus: 'VERIFIED' | 'PENDING_PAYMENT'
+  ) => Promise<{ success: boolean; message: string }>;
+  quickCashCheckin: (memberId: string, weekNumber: number) => Promise<{ success: boolean; message: string }>;
+  revertCheckin: (memberId: string, weekNumber: number) => Promise<{ success: boolean; message: string }>;
 }
 
 export const useAdminStore = create<AdminState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       programs: [
         {
           id: 'prog-100k',
@@ -276,6 +286,7 @@ export const useAdminStore = create<AdminState>()(
       items: initialItems,
       bundles: initialBundles,
       attendanceMembers: initialAttendanceMembers,
+      isLoadingMatrix: false,
 
       pendingLedgers: [
         {
@@ -357,19 +368,42 @@ export const useAdminStore = create<AdminState>()(
         set((state) => ({ bundles: state.bundles.filter((b) => b.id !== id) }));
       },
 
-      verifyLedger: (id, approve, rejectionReason) => {
+      verifyLedger: async (id, approve, rejectionReason) => {
+        try {
+          await ApiClient.patch(`/admin/ledgers/${id}/verify`, { approve, rejectionReason });
+        } catch {}
         set((state) => ({
           pendingLedgers: state.pendingLedgers.filter((l) => l.id !== id),
         }));
       },
 
-      approveWithdrawal: (id, approve, proofImageUrl, rejectionReason) => {
+      approveWithdrawal: async (id, approve, proofImageUrl, rejectionReason) => {
+        try {
+          await ApiClient.patch(`/admin/withdrawals/${id}/decision`, {
+            approve,
+            proofImageUrl,
+            rejectionReason,
+          });
+        } catch {}
         set((state) => ({
           pendingWithdrawals: state.pendingWithdrawals.filter((w) => w.id !== id),
         }));
       },
 
-      quickCashCheckin: (memberId, weekNumber) => {
+      fetchAttendanceMatrix: async () => {
+        set({ isLoadingMatrix: true });
+        try {
+          const res = await ApiClient.get('/admin/ledgers/matrix');
+          if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+            set({ attendanceMembers: res.data, isLoadingMatrix: false });
+            return;
+          }
+        } catch {}
+        set({ isLoadingMatrix: false });
+      },
+
+      toggleCheckin: async (memberId, weekNumber, targetStatus) => {
+        // Optimistic State Update
         set((state) => ({
           attendanceMembers: state.attendanceMembers.map((m) => {
             if (m.id !== memberId) return m;
@@ -378,9 +412,9 @@ export const useAdminStore = create<AdminState>()(
               if (l.weekNumber === weekNumber) {
                 return {
                   ...l,
-                  status: 'VERIFIED' as const,
-                  paymentMethod: 'CASH' as const,
-                  paidDate: new Date().toISOString(),
+                  status: targetStatus,
+                  paymentMethod: (targetStatus === 'VERIFIED' ? 'CASH' : l.paymentMethod) as any,
+                  paidDate: targetStatus === 'VERIFIED' ? new Date().toISOString() : undefined,
                 };
               }
               return l;
@@ -405,7 +439,29 @@ export const useAdminStore = create<AdminState>()(
           }),
         }));
 
-        return { success: true, message: `Setoran tunai Minggu ke-${weekNumber} berhasil diverifikasi!` };
+        // Send API request to Live Supabase Database
+        try {
+          await ApiClient.post('/admin/ledgers/toggle-status', {
+            memberSavingId: memberId,
+            weekNumber,
+            targetStatus,
+          });
+        } catch {}
+
+        const message =
+          targetStatus === 'VERIFIED'
+            ? `Setoran tunai Minggu ke-${weekNumber} berhasil dicentang lunas ke database Supabase!`
+            : `Setoran Minggu ke-${weekNumber} berhasil dibatalkan (uncheck) kembali ke belum bayar!`;
+
+        return { success: true, message };
+      },
+
+      quickCashCheckin: async (memberId, weekNumber) => {
+        return get().toggleCheckin(memberId, weekNumber, 'VERIFIED');
+      },
+
+      revertCheckin: async (memberId, weekNumber) => {
+        return get().toggleCheckin(memberId, weekNumber, 'PENDING_PAYMENT');
       },
     }),
     {

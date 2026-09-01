@@ -290,22 +290,59 @@ export class AdminService {
    * Quick Cash Entry: Admin marks a week as paid by cash instantly.
    */
   static async quickCashCheckin(adminId: string, memberSavingId: string, weekNumber: number) {
-    const ledger = await prisma.weeklyLedger.findFirst({
+    return this.toggleLedgerStatus(adminId, memberSavingId, weekNumber, 'VERIFIED');
+  }
+
+  /**
+   * Toggle Ledger Status (Check as Paid or Uncheck/Revert to Pending Payment) in Supabase.
+   */
+  static async toggleLedgerStatus(
+    adminId: string,
+    memberSavingId: string,
+    weekNumber: number,
+    targetStatus: 'VERIFIED' | 'PENDING_PAYMENT'
+  ) {
+    let ledger = await prisma.weeklyLedger.findFirst({
       where: { memberSavingId, weekNumber },
     });
 
+    // If ledger record doesn't exist yet, create it dynamically
     if (!ledger) {
-      return Result.fail('Data buku kas minggu terkait tidak ditemukan.', 404);
+      const saving = await prisma.memberSaving.findUnique({
+        where: { id: memberSavingId },
+        include: { cycle: true, program: true },
+      });
+
+      if (!saving) {
+        return Result.fail('Data tabungan nasabah tidak ditemukan.', 404);
+      }
+
+      const dueDate = new Date(saving.cycle.startDate);
+      dueDate.setDate(dueDate.getDate() + (weekNumber - 1) * 7);
+
+      ledger = await prisma.weeklyLedger.create({
+        data: {
+          memberSavingId,
+          weekNumber,
+          dueDate,
+          amount: Number(saving.program.weeklyNominal),
+          status: 'PENDING_PAYMENT',
+          paymentMethod: 'CASH',
+        },
+      });
     }
+
+    const isMarkingPaid = targetStatus === 'VERIFIED';
 
     const updated = await prisma.weeklyLedger.update({
       where: { id: ledger.id },
       data: {
-        status: 'VERIFIED',
-        paymentMethod: 'CASH',
-        paidDate: new Date(),
-        verifiedById: adminId,
-        verifiedAt: new Date(),
+        status: targetStatus,
+        paymentMethod: isMarkingPaid ? 'CASH' : ledger.paymentMethod,
+        paidDate: isMarkingPaid ? new Date() : null,
+        verifiedById: isMarkingPaid ? adminId : null,
+        verifiedAt: isMarkingPaid ? new Date() : null,
+        proofImageUrl: isMarkingPaid ? ledger.proofImageUrl : null,
         rejectionReason: null,
       },
     });
@@ -314,10 +351,10 @@ export class AdminService {
     await prisma.adminAuditLog.create({
       data: {
         adminId,
-        action: 'QUICK_CASH_ENTRY',
+        action: isMarkingPaid ? 'QUICK_CASH_ENTRY' : 'REVERT_PAYMENT_ENTRY',
         entityName: 'WeeklyLedger',
         entityId: ledger.id,
-        newValues: { status: 'VERIFIED', paymentMethod: 'CASH', weekNumber },
+        newValues: { status: targetStatus, weekNumber, memberSavingId },
       },
     });
 

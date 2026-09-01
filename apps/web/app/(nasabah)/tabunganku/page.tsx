@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNasabahStore } from '../../../stores/useNasabahStore';
 import { WeeklyCheckinCard } from '../../../components/nasabah/WeeklyCheckinCard';
 import { UploadProofModal } from '../../../components/nasabah/UploadProofModal';
 import { WeeklyLedgerItem } from '@nabungid/shared';
 
 export default function TabungankuPage() {
-  const { ledgers, payWeek } = useNasabahStore();
+  const { ledgers, payWeek, fetchMySavings } = useNasabahStore();
   const [selectedLedger, setSelectedLedger] = useState<WeeklyLedgerItem | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+
+  useEffect(() => {
+    fetchMySavings();
+  }, [fetchMySavings]);
 
   const handleOpenCheckin = (ledger: WeeklyLedgerItem) => {
     setSelectedLedger(ledger);

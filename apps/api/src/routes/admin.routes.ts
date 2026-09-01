@@ -10,6 +10,7 @@ router.use(authenticateJwt, requireRole('ADMIN'));
 router.get('/dashboard/summary', AdminController.getSummary);
 router.get('/ledgers/matrix', AdminController.getAttendanceMatrix);
 router.post('/ledgers/quick-cash', AdminController.quickCashCheckin);
+router.post('/ledgers/toggle-status', AdminController.toggleLedgerStatus);
 router.post('/broadcast/whatsapp-reminder', AdminController.triggerWhatsAppReminder);
 router.get('/ledgers/pending', AdminController.getPendingLedgers);
 router.patch('/ledgers/:id/verify', AdminController.verifyLedger);

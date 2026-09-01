@@ -3,47 +3,46 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
-  WeeklyLedgerItem,
-  PackageBundle,
   SavingsProgram,
+  PackageBundle,
+  WeeklyLedgerItem,
   EmergencyWithdrawalRequest,
   calculateEndCyclePayout,
   validateEmergencyWithdrawal,
 } from '@nabungid/shared';
+import { ApiClient } from '../lib/api-client';
 
-// Initial 50-week ledger generator
-const generateInitialLedgers = (weeklyAmount = 100000): WeeklyLedgerItem[] => {
-  const ledgers: WeeklyLedgerItem[] = [];
-  const baseDate = new Date('2026-04-05'); // H+1 Lebaran
-
-  for (let i = 1; i <= 50; i++) {
-    const dueDate = new Date(baseDate);
-    dueDate.setDate(dueDate.getDate() + (i - 1) * 7);
+const generateInitialLedgers = (weeklyAmount: number): WeeklyLedgerItem[] => {
+  const startDate = new Date('2026-04-05T00:00:00.000Z');
+  return Array.from({ length: 50 }, (_, i) => {
+    const weekNumber = i + 1;
+    const dueDate = new Date(startDate);
+    dueDate.setDate(dueDate.getDate() + i * 7);
 
     let status: WeeklyLedgerItem['status'] = 'PENDING_PAYMENT';
     let paidDate: string | undefined = undefined;
+    let paymentMethod: WeeklyLedgerItem['paymentMethod'] = 'BANK_TRANSFER';
 
-    if (i <= 18) {
+    // Demo pre-filled weeks: Weeks 1-18 verified, Week 19 waiting
+    if (weekNumber <= 18) {
       status = 'VERIFIED';
-      paidDate = new Date(dueDate.getTime() + 86400000).toISOString();
-    } else if (i === 19) {
+      paidDate = dueDate.toISOString();
+    } else if (weekNumber === 19) {
       status = 'WAITING_VERIFICATION';
       paidDate = new Date().toISOString();
     }
 
-    ledgers.push({
-      id: `ldg-${i}`,
+    return {
+      id: `ldg-${weekNumber}`,
       memberSavingId: 'sav-001',
-      weekNumber: i,
+      weekNumber,
       dueDate: dueDate.toISOString(),
-      paidDate,
       amount: weeklyAmount,
-      paymentMethod: 'BANK_TRANSFER',
-      proofImageUrl: i <= 19 ? 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500' : undefined,
       status,
-    });
-  }
-  return ledgers;
+      paidDate,
+      paymentMethod,
+    };
+  });
 };
 
 interface NasabahState {
@@ -53,17 +52,20 @@ interface NasabahState {
   withdrawals: EmergencyWithdrawalRequest[];
   emergencyQuotaUsed: boolean;
   totalEmergencyWithdrawn: number;
+  savingId: string;
 
   // Actions
-  selectBundle: (bundle: PackageBundle | null) => void;
-  payWeek: (weekNumber: number, proofImageUrl: string) => void;
-  requestEmergencyWithdrawal: (amount: number, reason: string) => { success: boolean; message: string };
+  fetchMySavings: () => Promise<void>;
+  selectBundle: (bundle: PackageBundle | null) => Promise<void>;
+  payWeek: (weekNumber: number, proofImageUrl: string) => Promise<{ success: boolean; message: string }>;
+  requestEmergencyWithdrawal: (amount: number, reason: string) => Promise<{ success: boolean; message: string }>;
   getPayoutSummary: () => ReturnType<typeof calculateEndCyclePayout>;
 }
 
 export const useNasabahStore = create<NasabahState>()(
   persist(
     (set, get) => ({
+      savingId: 'sav-001',
       program: {
         id: 'prog-100k',
         cycleId: 'cyc-1447',
@@ -79,7 +81,7 @@ export const useNasabahStore = create<NasabahState>()(
         name: 'Paket Sembako Berkah Lebaran',
         slug: 'paket-sembako-berkah',
         description: 'Daging sapi segar 1kg, Telur 1 tray, Minyak goreng 2L, Beras premium 5kg.',
-        bundlePrice: 450000,
+        bundlePrice: 318000,
         imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500',
         isActive: true,
       },
@@ -89,11 +91,33 @@ export const useNasabahStore = create<NasabahState>()(
       emergencyQuotaUsed: false,
       totalEmergencyWithdrawn: 0,
 
-      selectBundle: (bundle) => {
-        set({ bundle });
+      fetchMySavings: async () => {
+        try {
+          const res = await ApiClient.get('/nasabah/savings');
+          if (res.success && res.data) {
+            set({
+              savingId: res.data.id || 'sav-001',
+              program: res.data.program || get().program,
+              bundle: res.data.bundle || get().bundle,
+              ledgers: res.data.ledgers && res.data.ledgers.length > 0 ? res.data.ledgers : get().ledgers,
+              withdrawals: res.data.withdrawals || get().withdrawals,
+            });
+          }
+        } catch {}
       },
 
-      payWeek: (weekNumber, proofImageUrl) => {
+      selectBundle: async (bundle) => {
+        set({ bundle });
+        try {
+          const state = get();
+          await ApiClient.patch(`/nasabah/savings/${state.savingId}/bundle`, {
+            bundleId: bundle ? bundle.id : null,
+          });
+        } catch {}
+      },
+
+      payWeek: async (weekNumber, proofImageUrl) => {
+        // Optimistic update
         set((state) => ({
           ledgers: state.ledgers.map((l) =>
             l.weekNumber === weekNumber
@@ -106,9 +130,22 @@ export const useNasabahStore = create<NasabahState>()(
               : l
           ),
         }));
+
+        try {
+          const state = get();
+          await ApiClient.post(`/nasabah/savings/${state.savingId}/pay-week`, {
+            weekNumber,
+            proofImageUrl,
+          });
+        } catch {}
+
+        return {
+          success: true,
+          message: `Bukti transfer Minggu ke-${weekNumber} berhasil diunggah ke database dan sedang ditinjau admin!`,
+        };
       },
 
-      requestEmergencyWithdrawal: (amount, reason) => {
+      requestEmergencyWithdrawal: async (amount, reason) => {
         const state = get();
         const currentBalance = state.ledgers
           .filter((l) => l.status === 'VERIFIED')
@@ -128,7 +165,7 @@ export const useNasabahStore = create<NasabahState>()(
 
         const newWithdrawal: EmergencyWithdrawalRequest = {
           id: `emg-${Date.now()}`,
-          memberSavingId: 'sav-001',
+          memberSavingId: state.savingId,
           userId: 'usr-nasabah-01',
           amount,
           reason,

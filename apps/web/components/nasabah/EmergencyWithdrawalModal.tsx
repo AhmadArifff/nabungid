@@ -29,15 +29,15 @@ export const EmergencyWithdrawalModal: React.FC<EmergencyWithdrawalModalProps> =
 
   const maxAllowed = Math.min(500000, currentBalance);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
+      const result = await requestEmergencyWithdrawal(amount, reason);
       setIsSubmitting(false);
-      const result = requestEmergencyWithdrawal(amount, reason);
       if (result.success) {
         setSuccessMsg(result.message);
         useToastStore.getState().success('Permohonan penarikan darurat telah dikirim ke Admin untuk ditinjau.');
@@ -48,7 +48,10 @@ export const EmergencyWithdrawalModal: React.FC<EmergencyWithdrawalModalProps> =
       } else {
         setErrorMsg(result.message);
       }
-    }, 600);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrorMsg(err.message || 'Terjadi kesalahan saat memproses permohonan.');
+    }
   };
 
   return (

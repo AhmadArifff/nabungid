@@ -86,7 +86,7 @@ async function runApiIntegrationTests() {
       'Admin 50-Week Attendance Matrix Retrieved (GET /api/v1/admin/ledgers/matrix)'
     );
 
-    // 8. Admin: 1-Click Quick Cash Entry
+    // 8. Admin: 1-Click Quick Cash Entry & Dynamic Toggle Uncheck
     if (memberSavingId) {
       const quickCashRes = await request(app)
         .post('/api/v1/admin/ledgers/quick-cash')
@@ -98,6 +98,34 @@ async function runApiIntegrationTests() {
       assert(
         quickCashRes.status === 200 && quickCashRes.body.data?.status === 'VERIFIED',
         'Admin Quick Cash Entry Verified (POST /api/v1/admin/ledgers/quick-cash)'
+      );
+
+      // 8b. Admin: Toggle Uncheck / Revert to Pending Payment (Mistake Handling)
+      const revertRes = await request(app)
+        .post('/api/v1/admin/ledgers/toggle-status')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          memberSavingId,
+          weekNumber: 1,
+          targetStatus: 'PENDING_PAYMENT',
+        });
+      assert(
+        revertRes.status === 200 && revertRes.body.data?.status === 'PENDING_PAYMENT',
+        'Admin Revert / Uncheck Entry to Pending Payment (POST /api/v1/admin/ledgers/toggle-status)'
+      );
+
+      // 8c. Re-check back to Verified
+      const recheckRes = await request(app)
+        .post('/api/v1/admin/ledgers/toggle-status')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          memberSavingId,
+          weekNumber: 1,
+          targetStatus: 'VERIFIED',
+        });
+      assert(
+        recheckRes.status === 200 && recheckRes.body.data?.status === 'VERIFIED',
+        'Admin Re-check Status back to Verified (POST /api/v1/admin/ledgers/toggle-status)'
       );
 
       // 9. Admin: Trigger WhatsApp Reminder

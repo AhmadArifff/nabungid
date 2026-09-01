@@ -125,6 +125,33 @@ export class AdminController {
     }
   }
 
+  static async toggleLedgerStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const adminId = req.user!.id;
+      const { memberSavingId, weekNumber, targetStatus } = req.body;
+      if (!memberSavingId || !weekNumber || !targetStatus) {
+        res.status(400).json({
+          success: false,
+          message: 'memberSavingId, weekNumber, dan targetStatus (VERIFIED / PENDING_PAYMENT) wajib diisi.',
+        });
+        return;
+      }
+      const result = await AdminService.toggleLedgerStatus(
+        adminId,
+        memberSavingId,
+        Number(weekNumber),
+        targetStatus
+      );
+      if (!result.isSuccess) {
+        res.status(result.statusCode || 400).json({ success: false, message: result.error });
+        return;
+      }
+      res.status(200).json({ success: true, data: result.data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async triggerWhatsAppReminder(req: Request, res: Response, next: NextFunction) {
     try {
       const { memberSavingId, weekNumber } = req.body;
