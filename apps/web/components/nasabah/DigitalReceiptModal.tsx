@@ -77,8 +77,23 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
           </div>
 
           <div className="flex justify-between py-1 border-b border-white/5">
-            <span className="text-slate-400">Metode & Waktu Bayar:</span>
-            <span className="text-slate-300 font-mono">{ledger.paymentMethod === 'CASH' ? 'Tunai' : 'Transfer'} • {paidDateStr}</span>
+            <span className="text-slate-400">Target Jatuh Tempo:</span>
+            <span className="font-mono text-slate-300">
+              {(() => {
+                const d = ledger.dueDate ? new Date(ledger.dueDate) : new Date('2026-04-05');
+                return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+              })()}
+            </span>
+          </div>
+
+          <div className="flex justify-between py-1 border-b border-white/5">
+            <span className="text-slate-400">Waktu Diterima Kas (paidDate):</span>
+            <span className="text-emerald-400 font-mono font-bold">{paidDateStr}</span>
+          </div>
+
+          <div className="flex justify-between py-1 border-b border-white/5">
+            <span className="text-slate-400">Metode Penyetoran:</span>
+            <span className="text-slate-300 font-mono">{ledger.paymentMethod === 'CASH' ? 'Tunai (Kas Admin)' : 'Transfer Bank / QRIS'}</span>
           </div>
 
           {/* Big Amount */}

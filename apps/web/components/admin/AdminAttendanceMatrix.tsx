@@ -411,6 +411,30 @@ export const AdminAttendanceMatrix: React.FC<AdminAttendanceMatrixProps> = () =>
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-white/5">
+                <span className="text-slate-400">Jatuh Tempo Target:</span>
+                <span className="font-mono text-slate-300">
+                  {(() => {
+                    const start = new Date('2026-04-05');
+                    start.setDate(start.getDate() + (selectedCellAction.weekNumber - 1) * 7);
+                    return start.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                  })()}
+                </span>
+              </div>
+              {selectedCellAction.paidDate && (
+                <div className="flex justify-between py-1 border-b border-white/5">
+                  <span className="text-slate-400">Tanggal Diterima Kas:</span>
+                  <span className="font-mono text-emerald-400 font-bold">
+                    {new Date(selectedCellAction.paidDate).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between py-1 border-b border-white/5">
                 <span className="text-slate-400">Nominal Setoran:</span>
                 <span className="font-mono font-bold text-white">
                   Rp {selectedCellAction.amount.toLocaleString('id-ID')}
