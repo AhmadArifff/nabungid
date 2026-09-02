@@ -8,7 +8,7 @@ import { useAuthStore } from '../../stores/useAuthStore';
 
 export const RegisterForm: React.FC = () => {
   const router = useRouter();
-  const { loginAsNasabah } = useAuthStore();
+  const { setCredentials } = useAuthStore();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -16,17 +16,35 @@ export const RegisterForm: React.FC = () => {
   const [selectedNominal, setSelectedNominal] = useState<number>(100000);
   const [agreed, setAgreed] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreed) return;
     setIsLoading(true);
+    setErrorMsg('');
 
-    setTimeout(() => {
+    try {
+      const { ApiClient } = await import('../../lib/api-client');
+      const response = await ApiClient.post('/auth/register', {
+        name,
+        phoneNumber: phone,
+        email: email || undefined,
+        password,
+        role: 'NASABAH',
+      });
+
+      if (response.success && response.data) {
+        setCredentials(response.data.user, response.data.token);
+        router.push('/dashboard');
+      } else {
+        setErrorMsg(response.message || 'Pendaftaran gagal. Periksa kembali data Anda.');
+      }
+    } catch (error: any) {
+      setErrorMsg(error.message || 'Terjadi kesalahan pada server.');
+    } finally {
       setIsLoading(false);
-      loginAsNasabah(phone || email, name || 'Nasabah Baru');
-      router.push('/dashboard');
-    }, 700);
+    }
   };
 
   return (
@@ -158,6 +176,12 @@ export const RegisterForm: React.FC = () => {
               </span>
             </label>
           </div>
+
+          {errorMsg && (
+            <div className="p-3 mt-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center space-x-2 text-red-400">
+              <span className="text-xs">{errorMsg}</span>
+            </div>
+          )}
 
           <button
             type="submit"
