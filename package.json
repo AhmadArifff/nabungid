@@ -15,12 +15,12 @@
   "devDependencies": {
     "@types/supertest": "^7.2.1",
     "prettier": "^3.5.2",
-    "supertest": "^7.2.2",
-    "turbo": "^2.4.4",
-    "typescript": "^5.7.3"
+    "supertest": "^7.2.2"
   },
   "packageManager": "npm@11.16.0",
   "dependencies": {
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "turbo": "^2.4.4",
+    "typescript": "^5.7.3"
   }
 }
