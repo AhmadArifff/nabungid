@@ -9,28 +9,41 @@ import { useAuthStore } from '../../stores/useAuthStore';
 
 export const LoginForm: React.FC = () => {
   const router = useRouter();
-  const { loginAsNasabah, loginAsAdmin } = useAuthStore();
+  const { setCredentials } = useAuthStore();
   const [selectedRole, setSelectedRole] = useState<'NASABAH' | 'ADMIN'>('NASABAH');
   const [phoneOrEmail, setPhoneOrEmail] = useState('081234567890');
   const [password, setPassword] = useState('password123');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg('');
 
-    setTimeout(() => {
-      setIsLoading(false);
-      if (selectedRole === 'NASABAH') {
-        loginAsNasabah(phoneOrEmail, 'Ahmad Arif');
-        router.push('/dashboard');
+    try {
+      const { ApiClient } = await import('../../lib/api-client');
+      const response = await ApiClient.post('/auth/login', {
+        identifier: phoneOrEmail,
+        password,
+      });
+
+      if (response.success && response.data) {
+        setCredentials(response.data.user, response.data.token);
+        
+        if (response.data.user.role === 'ADMIN') {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
-        loginAsAdmin(phoneOrEmail, 'Admin Pengelola NabungID');
-        router.push('/admin/dashboard');
+        setErrorMsg(response.message || 'Login gagal. Periksa kembali data Anda.');
       }
-    }, 600);
+    } catch (error: any) {
+      setErrorMsg(error.message || 'Terjadi kesalahan pada server.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleQuickDemo = (role: 'NASABAH' | 'ADMIN') => {
@@ -144,6 +157,12 @@ export const LoginForm: React.FC = () => {
             </div>
           )}
 
+          {errorMsg && (
+            <div className="p-3 mb-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center space-x-2 text-red-400">
+              <span className="text-xs">{errorMsg}</span>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={isLoading}
@@ -159,44 +178,7 @@ export const LoginForm: React.FC = () => {
             )}
           </button>
         </form>
-
-        {/* Demo Fast Login Helper */}
-        <div className="mt-6 pt-5 border-t border-white/10">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-            <span className="flex items-center space-x-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Akses Demo Cepat:</span>
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                handleQuickDemo('NASABAH');
-                loginAsNasabah('ahmad@example.com', 'Ahmad Arif');
-                router.push('/dashboard');
-              }}
-              className="px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-[11px] text-slate-300 hover:border-emerald-500/40 hover:text-white transition-all text-left flex items-center space-x-1.5"
-            >
-              <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-              <span className="truncate">Demo Nasabah</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                handleQuickDemo('ADMIN');
-                loginAsAdmin('admin@nabungid.com', 'Admin Pengelola');
-                router.push('/admin/dashboard');
-              }}
-              className="px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-[11px] text-slate-300 hover:border-amber-500/40 hover:text-white transition-all text-left flex items-center space-x-1.5"
-            >
-              <CheckCircle2 className="w-3 h-3 text-amber-400 shrink-0" />
-              <span className="truncate">Demo Admin</span>
-            </button>
-          </div>
-        </div>
       </div>
-
       {/* Register Link */}
       <p className="text-center text-xs text-slate-400 mt-6">
         Belum memiliki akun tabungan?{' '}
