@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useAdminStore } from '../../../../stores/useAdminStore';
 import { useToastStore } from '../../../../stores/useToastStore';
 import { CheckSquare, Check, X, Eye, Phone, Calendar, Sparkles } from 'lucide-react';
+import { useAutoSync } from '../../../../hooks/useAutoSync';
+import { formatWeekBadge } from '../../../../lib/date-format';
 
 export default function AdminVerifikasiPage() {
   const { pendingLedgers, verifyLedger, fetchPendingLedgers } = useAdminStore();
@@ -13,6 +15,9 @@ export default function AdminVerifikasiPage() {
   React.useEffect(() => {
     fetchPendingLedgers();
   }, [fetchPendingLedgers]);
+
+  // Real-time background sync every 1 minute
+  useAutoSync(fetchPendingLedgers, 60000);
 
   const handleVerify = async (id: string, approve: boolean) => {
     await verifyLedger(id, approve);
@@ -41,7 +46,13 @@ export default function AdminVerifikasiPage() {
       {/* Table / Card List */}
       <div className="rounded-3xl bg-slate-900/80 border border-white/10 overflow-hidden">
         <div className="p-5 border-b border-white/10 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white">Daftar Menunggu Persetujuan</h3>
+          <div className="flex items-center space-x-2.5">
+            <h3 className="text-sm font-bold text-white">Daftar Menunggu Persetujuan</h3>
+            <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Auto-Sync 1 Menit</span>
+            </div>
+          </div>
           <span className="text-xs text-amber-400 font-mono font-semibold">{pendingLedgers.length} Antrean</span>
         </div>
 
@@ -77,7 +88,7 @@ export default function AdminVerifikasiPage() {
                       <span>{item.userPhone}</span>
                     </div>
                     <div className="text-xs text-slate-300 font-mono mt-1">
-                      Minggu ke-{item.weekNumber} •{' '}
+                      {formatWeekBadge(item.weekNumber, item.dueDate)} •{' '}
                       <span className="text-amber-300 font-bold">
                         Rp {(item.amount ?? 0).toLocaleString('id-ID')}
                       </span>

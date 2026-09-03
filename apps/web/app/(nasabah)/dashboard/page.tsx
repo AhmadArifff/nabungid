@@ -21,6 +21,8 @@ import { CircularProgress } from '../../../components/nasabah/CircularProgress';
 import { UploadProofModal } from '../../../components/nasabah/UploadProofModal';
 import { EmergencyWithdrawalModal } from '../../../components/nasabah/EmergencyWithdrawalModal';
 import { WeeklyLedgerItem } from '@nabungid/shared';
+import { useAutoSync } from '../../../hooks/useAutoSync';
+import { formatWeekBadge, formatWeekDueDate } from '../../../lib/date-format';
 
 export default function NasabahDashboardPage() {
   const { user } = useAuthStore();
@@ -46,6 +48,9 @@ export default function NasabahDashboardPage() {
       setIsLoading(false);
     });
   }, [fetchMySavings]);
+
+  // Real-time background sync every 1 minute
+  useAutoSync(fetchMySavings, 60000);
 
   if (isLoading) {
     return (
@@ -98,7 +103,7 @@ export default function NasabahDashboardPage() {
               className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all flex items-center space-x-1.5"
             >
               <Coins className="w-4 h-4" />
-              <span>Cek-in Minggu Ke-{nextUnpaidLedger.weekNumber}</span>
+              <span>Cek-in {formatWeekBadge(nextUnpaidLedger.weekNumber, nextUnpaidLedger.dueDate)}</span>
             </button>
           )}
           <button
@@ -111,7 +116,7 @@ export default function NasabahDashboardPage() {
         </div>
       </div>
 
-      {/* 📇 Mini Member Stamp Card Strip (Preview Kartu Absensi) */}
+      {/* 📇 Mini Member Stamp Card Strip (Preview Kartu Tabungan) */}
       <div className="p-5 rounded-3xl bg-slate-900/80 border border-amber-400/30 backdrop-blur-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -121,15 +126,21 @@ export default function NasabahDashboardPage() {
               <Calendar className="w-4 h-4" />
             </span>
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                <span>Kartu Absensi Cek-in Setoran Mingguan</span>
-                <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">
-                  <Flame className="w-3 h-3 fill-orange-400" />
-                  <span>{verifiedWeeks} Mg Streak</span>
-                </span>
-              </h3>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                  <span>Kartu Tabungan Cek-in Setoran Mingguan</span>
+                  <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">
+                    <Flame className="w-3 h-3 fill-orange-400" />
+                    <span>{verifiedWeeks} Mg Streak</span>
+                  </span>
+                </h3>
+                <div className="hidden sm:flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Auto-Sync 1m</span>
+                </div>
+              </div>
               <p className="text-[11px] text-slate-400">
-                Stempel kehadiran setoran digital nasabah • Disiplin tanpa bolong
+                Stempel setoran digital nasabah • Disiplin tanpa bolong
               </p>
             </div>
           </div>
@@ -137,7 +148,7 @@ export default function NasabahDashboardPage() {
             href="/tabunganku"
             className="text-xs text-amber-400 font-semibold hover:underline flex items-center space-x-1 self-start sm:self-auto"
           >
-            <span>Buka Kartu Absen Lengkap (50 Minggu)</span>
+            <span>Buka Kartu Tabungan Lengkap (50 Minggu)</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -163,6 +174,7 @@ export default function NasabahDashboardPage() {
                 }`}
               >
                 <div className="text-[10px] font-bold text-slate-300">Mg-{item.weekNumber}</div>
+                <div className="text-[9px] text-slate-400 font-sans font-normal">({formatWeekDueDate(item.weekNumber, item.dueDate)})</div>
                 <div className="my-1.5 flex items-center justify-center">
                   {isVerified && (
                     <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-400">
@@ -303,7 +315,7 @@ export default function NasabahDashboardPage() {
               href="/tabunganku"
               className="text-xs text-emerald-400 font-semibold hover:underline flex items-center space-x-1"
             >
-              <span>Buka Kartu Absen 50 Minggu</span>
+              <span>Buka Kartu Tabungan (50 Minggu)</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>

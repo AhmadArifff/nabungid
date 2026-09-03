@@ -4,6 +4,7 @@ import React from 'react';
 import { useAdminStore } from '../../../../stores/useAdminStore';
 import { useToastStore } from '../../../../stores/useToastStore';
 import { ShieldAlert, Check, X, Phone, AlertTriangle } from 'lucide-react';
+import { useAutoSync } from '../../../../hooks/useAutoSync';
 
 export default function AdminPenarikanPage() {
   const { pendingWithdrawals, approveWithdrawal, fetchPendingWithdrawals } = useAdminStore();
@@ -12,6 +13,9 @@ export default function AdminPenarikanPage() {
   React.useEffect(() => {
     fetchPendingWithdrawals();
   }, [fetchPendingWithdrawals]);
+
+  // Real-time background sync every 1 minute
+  useAutoSync(fetchPendingWithdrawals, 60000);
 
   const handleDecision = async (id: string, approve: boolean) => {
     await approveWithdrawal(id, approve);
@@ -40,7 +44,13 @@ export default function AdminPenarikanPage() {
       {/* Pending List */}
       <div className="rounded-3xl bg-slate-900/80 border border-white/10 overflow-hidden">
         <div className="p-5 border-b border-white/10 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white">Daftar Pengajuan Penarikan Darurat</h3>
+          <div className="flex items-center space-x-2.5">
+            <h3 className="text-sm font-bold text-white">Daftar Pengajuan Penarikan Darurat</h3>
+            <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Auto-Sync 1 Menit</span>
+            </div>
+          </div>
           <span className="text-xs text-rose-400 font-mono font-semibold">
             {pendingWithdrawals.length} Permohonan
           </span>

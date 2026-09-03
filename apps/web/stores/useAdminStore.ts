@@ -37,6 +37,7 @@ export interface AttendanceMatrixMember {
   ledgers: Array<{
     id?: string;
     weekNumber: number;
+    dueDate?: string;
     status: 'VERIFIED' | 'WAITING_VERIFICATION' | 'PENDING_PAYMENT' | 'REJECTED';
     amount: number;
     paidDate?: string;

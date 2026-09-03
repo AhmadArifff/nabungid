@@ -5,6 +5,7 @@ import { useNasabahStore } from '../../../stores/useNasabahStore';
 import { WeeklyCheckinCard } from '../../../components/nasabah/WeeklyCheckinCard';
 import { UploadProofModal } from '../../../components/nasabah/UploadProofModal';
 import { WeeklyLedgerItem } from '@nabungid/shared';
+import { useAutoSync } from '../../../hooks/useAutoSync';
 
 export default function TabungankuPage() {
   const { ledgers, payWeek, fetchMySavings } = useNasabahStore();
@@ -14,6 +15,9 @@ export default function TabungankuPage() {
   useEffect(() => {
     fetchMySavings();
   }, [fetchMySavings]);
+
+  // Real-time background sync every 1 minute
+  useAutoSync(fetchMySavings, 60000);
 
   const handleOpenCheckin = (ledger: WeeklyLedgerItem) => {
     setSelectedLedger(ledger);

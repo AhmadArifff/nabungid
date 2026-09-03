@@ -60,7 +60,7 @@ export default function OfflinePage() {
           <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
           <div className="text-xs text-slate-300 leading-snug">
             <strong className="text-white block font-semibold mb-0.5">Saldo & Data Anda Aman</strong>
-            Rekap transaksi dan buku absensi tabungan Anda tetap tersimpan di penyimpanan aman aplikasi.
+            Rekap transaksi dan buku tabungan Anda tetap tersimpan di penyimpanan aman aplikasi.
           </div>
         </div>
 

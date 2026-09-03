@@ -23,6 +23,8 @@ import { useAdminStore, AttendanceMatrixMember } from '../../stores/useAdminStor
 import { WhatsAppReminderModal } from './WhatsAppReminderModal';
 import { DigitalReceiptModal } from '../nasabah/DigitalReceiptModal';
 import { exportAttendanceMatrixToExcel } from '../../lib/excel-export';
+import { useAutoSync } from '../../hooks/useAutoSync';
+import { formatWeekDueDate } from '../../lib/date-format';
 
 interface AdminAttendanceMatrixProps {
   onOpenQuickVerification?: (member: AttendanceMatrixMember, weekNumber: number) => void;
@@ -57,9 +59,12 @@ export const AdminAttendanceMatrix: React.FC<AdminAttendanceMatrixProps> = () =>
     fetchAttendanceMatrix();
   }, [fetchAttendanceMatrix]);
 
+  // Real-time background sync every 1 minute
+  useAutoSync(fetchAttendanceMatrix, 60000);
+
   const handleExportExcel = () => {
     exportAttendanceMatrixToExcel(attendanceMembers);
-    setToastMessage('Berkas Excel Matriks Absensi (.xlsx) berhasil diunduh!');
+    setToastMessage('Berkas Excel Buku Tabungan (.xlsx) berhasil diunduh!');
     setTimeout(() => setToastMessage(''), 3000);
   };
 
@@ -196,11 +201,15 @@ export const AdminAttendanceMatrix: React.FC<AdminAttendanceMatrixProps> = () =>
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-2 shrink-0">
+          <div className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Auto-Sync 1 Menit</span>
+          </div>
           <button
             onClick={() => fetchAttendanceMatrix()}
             disabled={isLoadingMatrix}
-            title="Refresh Data dari Database Supabase"
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors disabled:opacity-50"
+            title="Refresh Data dari Database Supabase (Auto-sync tiap 1 menit)"
+            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoadingMatrix ? 'animate-spin text-amber-400' : ''}`} />
           </button>
@@ -236,11 +245,17 @@ export const AdminAttendanceMatrix: React.FC<AdminAttendanceMatrixProps> = () =>
                   Total Kas
                 </th>
                 {/* 50 Weekly Columns */}
-                {Array.from({ length: 50 }, (_, i) => (
-                  <th key={i + 1} className="py-3 px-2 text-center min-w-[44px] font-mono text-[10px]">
-                    M{i + 1}
-                  </th>
-                ))}
+                {Array.from({ length: 50 }, (_, i) => {
+                  const weekNum = i + 1;
+                  const sampleDueDate = attendanceMembers[0]?.ledgers?.find((l) => l.weekNumber === weekNum)?.dueDate;
+                  const dateLabel = formatWeekDueDate(weekNum, sampleDueDate);
+                  return (
+                    <th key={weekNum} className="py-2.5 px-2 text-center min-w-[80px] font-mono text-[10px] whitespace-nowrap border-l border-white/5">
+                      <div className="text-white font-bold">M{weekNum}</div>
+                      <div className="text-[9px] text-slate-400 font-sans font-normal lowercase">({dateLabel})</div>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 font-mono">
@@ -386,7 +401,7 @@ export const AdminAttendanceMatrix: React.FC<AdminAttendanceMatrixProps> = () =>
                 )}
               </div>
               <h3 className="text-base font-bold text-white">
-                Kelola Setoran Minggu ke-{selectedCellAction.weekNumber}
+                Kelola Setoran Mg-{selectedCellAction.weekNumber} ({formatWeekDueDate(selectedCellAction.weekNumber)})
               </h3>
               <p className="text-xs text-amber-400 font-medium mt-0.5">{selectedCellAction.member.name}</p>
             </div>
