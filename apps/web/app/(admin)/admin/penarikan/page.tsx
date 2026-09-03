@@ -58,7 +58,7 @@ export default function AdminPenarikanPage() {
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-bold text-white">{w.userName}</span>
                     <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 text-[10px] font-mono">
-                      Saldo: Rp {w.currentBalance.toLocaleString('id-ID')}
+                      Saldo: Rp {(w.currentBalance ?? 0).toLocaleString('id-ID')}
                     </span>
                   </div>
 
@@ -70,7 +70,7 @@ export default function AdminPenarikanPage() {
                   <div className="text-xs text-slate-300 mt-2">
                     Nominal Diminta:{' '}
                     <strong className="text-amber-400 font-mono text-sm">
-                      Rp {w.amount.toLocaleString('id-ID')}
+                      Rp {(w.amount ?? 0).toLocaleString('id-ID')}
                     </strong>{' '}
                     (0% Fee)
                   </div>

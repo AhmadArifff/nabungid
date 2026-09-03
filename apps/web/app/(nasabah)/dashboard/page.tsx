@@ -87,7 +87,7 @@ export default function NasabahDashboardPage() {
               </span>
             </div>
             <p className="text-xs text-slate-300 mt-0.5">
-              Target pencairan H-1 Idul Fitri 1447H • Rp {program.weeklyNominal.toLocaleString('id-ID')} / minggu
+              Target pencairan H-1 Idul Fitri 1447H • Rp {(program?.weeklyNominal ?? 0).toLocaleString('id-ID')} / minggu
             </p>
           </div>
         </div>
@@ -239,7 +239,7 @@ export default function NasabahDashboardPage() {
             <div className="mb-6">
               <div className="text-xs text-slate-400">Estimasi Uang Tunai Bersih Diterima:</div>
               <div className="text-3xl sm:text-4xl font-black font-mono text-amber-400 tracking-tight mt-1">
-                Rp {payout.netPayoutAmount.toLocaleString('id-ID')}
+                Rp {(payout?.netPayoutAmount ?? 0).toLocaleString('id-ID')}
               </div>
             </div>
 
@@ -251,7 +251,7 @@ export default function NasabahDashboardPage() {
                   <span>Total Tabungan Terverifikasi ({verifiedWeeks} Minggu)</span>
                 </span>
                 <span className="font-mono font-bold text-white">
-                  + Rp {payout.totalSavedAmount.toLocaleString('id-ID')}
+                  + Rp {(payout?.totalSavedAmount ?? 0).toLocaleString('id-ID')}
                 </span>
               </div>
 
@@ -261,7 +261,7 @@ export default function NasabahDashboardPage() {
                   <span>Biaya Administrasi Program</span>
                 </span>
                 <span className="font-mono font-bold text-slate-400">
-                  - Rp {payout.adminFeeAmount.toLocaleString('id-ID')}
+                  - Rp {(payout?.adminFeeAmount ?? 0).toLocaleString('id-ID')}
                 </span>
               </div>
 
@@ -272,19 +272,19 @@ export default function NasabahDashboardPage() {
                     <span>Paket Barang: {bundle.name}</span>
                   </span>
                   <span className="font-mono font-bold text-amber-300">
-                    - Rp {bundle.bundlePrice.toLocaleString('id-ID')}
+                    - Rp {(bundle.bundlePrice ?? 0).toLocaleString('id-ID')}
                   </span>
                 </div>
               )}
 
-              {payout.emergencyDeductionAmount > 0 && (
+              {(payout?.emergencyDeductionAmount ?? 0) > 0 && (
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300">
                   <span className="flex items-center space-x-2">
                     <span className="w-2 h-2 rounded-full bg-rose-400" />
                     <span>Total Penarikan Darurat yang Telah Dicairkan</span>
                   </span>
                   <span className="font-mono font-bold">
-                    - Rp {payout.emergencyDeductionAmount.toLocaleString('id-ID')}
+                    - Rp {(payout?.emergencyDeductionAmount ?? 0).toLocaleString('id-ID')}
                   </span>
                 </div>
               )}
@@ -332,7 +332,7 @@ export default function NasabahDashboardPage() {
           <div className="text-right sm:shrink-0 flex sm:flex-col items-center sm:items-end justify-between">
             <div className="text-xs text-slate-400">Total Harga Paket:</div>
             <div className="text-lg font-bold font-mono text-amber-300">
-              Rp {bundle.bundlePrice.toLocaleString('id-ID')}
+              Rp {(bundle.bundlePrice ?? 0).toLocaleString('id-ID')}
             </div>
           </div>
         </div>

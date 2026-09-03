@@ -32,8 +32,8 @@ export default function AdminDashboardPage() {
     fetchAttendanceMatrix();
   }, [fetchAttendanceMatrix, fetchDashboardMetrics]);
 
-  const totalNasabah = metrics ? metrics.totalNasabah : 0;
-  const kasDisplay = metrics ? metrics.totalKasTerkumpul : 0;
+  const totalNasabah = metrics ? (metrics.totalNasabah ?? 0) : 0;
+  const kasDisplay = metrics ? (metrics.totalKasTerkumpul ?? 0) : 0;
 
   return (
     <div className="space-y-6">
@@ -81,7 +81,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <div className="text-2xl font-black font-mono text-emerald-400">
-              Rp {kasDisplay.toLocaleString('id-ID')}
+              Rp {(kasDisplay ?? 0).toLocaleString('id-ID')}
             </div>
             <div className="text-[10px] text-slate-400 mt-1 flex items-center space-x-1">
               <TrendingUp className="w-3 h-3 text-emerald-400" />
@@ -162,7 +162,7 @@ export default function AdminDashboardPage() {
                   <div>
                     <div className="text-xs font-bold text-white">{l.userName}</div>
                     <div className="text-[11px] text-slate-400">
-                      Minggu ke-{l.weekNumber} • <span className="text-amber-300 font-mono font-semibold">Rp {l.amount.toLocaleString('id-ID')}</span>
+                      Minggu ke-{l.weekNumber} • <span className="text-amber-300 font-mono font-semibold">Rp {(l.amount ?? 0).toLocaleString('id-ID')}</span>
                     </div>
                   </div>
                   <Link

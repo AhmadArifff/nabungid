@@ -159,7 +159,7 @@ export default function AdminMasterDataPage() {
                     <h4 className="text-xs font-bold text-white leading-snug">{item.name}</h4>
                     <div className="text-[10px] text-slate-400 mt-0.5 font-mono">Satuan: {item.unit}</div>
                     <div className="text-xs font-bold font-mono text-amber-300 mt-1">
-                      Rp {item.estimatedPrice.toLocaleString('id-ID')}
+                      Rp {(item.estimatedPrice ?? 0).toLocaleString('id-ID')}
                     </div>
                   </div>
                 </div>
@@ -204,7 +204,7 @@ export default function AdminMasterDataPage() {
                   </div>
                   <p className="text-xs text-slate-400 mb-3">{bundle.description}</p>
                   <div className="text-base font-bold font-mono text-amber-300">
-                    Rp {bundle.bundlePrice.toLocaleString('id-ID')}
+                    Rp {(bundle.bundlePrice ?? 0).toLocaleString('id-ID')}
                   </div>
                 </div>
                 <div className="pt-3 mt-4 border-t border-white/5 flex items-center justify-end space-x-2">
@@ -241,15 +241,15 @@ export default function AdminMasterDataPage() {
                 <div className="p-3 rounded-2xl bg-slate-950/60 border border-white/5 space-y-1 text-xs">
                   <div className="flex items-center justify-between text-slate-400">
                     <span>Setoran Mingguan:</span>
-                    <strong className="text-white font-mono">Rp {program.weeklyNominal.toLocaleString('id-ID')}</strong>
+                    <strong className="text-white font-mono">Rp {(program.weeklyNominal ?? 0).toLocaleString('id-ID')}</strong>
                   </div>
                   <div className="flex items-center justify-between text-slate-400">
                     <span>Target Total (50 Mg):</span>
-                    <strong className="text-amber-300 font-mono">Rp {(program.weeklyNominal * program.targetWeeks).toLocaleString('id-ID')}</strong>
+                    <strong className="text-amber-300 font-mono">Rp {((program.weeklyNominal ?? 0) * (program.targetWeeks ?? 50)).toLocaleString('id-ID')}</strong>
                   </div>
                   <div className="flex items-center justify-between text-slate-400">
                     <span>Admin Pengelola:</span>
-                    <strong className="text-emerald-400 font-mono">Rp {program.adminFee.toLocaleString('id-ID')}</strong>
+                    <strong className="text-emerald-400 font-mono">Rp {(program.adminFee ?? 0).toLocaleString('id-ID')}</strong>
                   </div>
                 </div>
               </div>
@@ -293,7 +293,7 @@ export default function AdminMasterDataPage() {
                     className="w-full p-2.5 rounded-xl bg-slate-950/60 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-emerald-500"
                   />
                   <span className="text-[10px] text-slate-400 mt-0.5 block font-mono">
-                    Rp {itemPrice.toLocaleString('id-ID')}
+                    Rp {(itemPrice ?? 0).toLocaleString('id-ID')}
                   </span>
                 </div>
                 <div>

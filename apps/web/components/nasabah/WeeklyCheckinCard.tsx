@@ -260,7 +260,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
                 {/* Center Nominal */}
                 <div className="my-1">
                   <div className="text-base font-black font-mono text-white">
-                    Rp {item.amount.toLocaleString('id-ID')}
+                    Rp {(item.amount ?? 0).toLocaleString('id-ID')}
                   </div>
                 </div>
 
@@ -335,7 +335,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
                     })}
                   </td>
                   <td className="py-3.5 px-4 text-amber-300 font-bold">
-                    Rp {l.amount.toLocaleString('id-ID')}
+                    Rp {(l.amount ?? 0).toLocaleString('id-ID')}
                   </td>
                   <td className="py-3.5 px-4 font-sans text-slate-400">
                     {l.proofImageUrl ? (

@@ -91,7 +91,7 @@ export default function AdminDistribusiPage() {
         <div className="p-5 rounded-3xl bg-slate-900/80 border border-white/10">
           <div className="text-xs text-slate-400">Total Uang Tunai Bersih Dibagikan:</div>
           <div className="text-2xl font-black font-mono text-emerald-400 mt-1">
-            Rp {totalDisbursedCash.toLocaleString('id-ID')}
+            Rp {(totalDisbursedCash ?? 0).toLocaleString('id-ID')}
           </div>
           <div className="text-[10px] text-slate-400 mt-0.5">Untuk 5 nasabah batch demo</div>
         </div>
@@ -142,19 +142,19 @@ export default function AdminDistribusiPage() {
                     <div>{r.name}</div>
                     <div className="text-[10px] text-slate-500 font-mono">{r.phone}</div>
                   </td>
-                  <td className="py-4 px-4 text-slate-300">Rp {r.totalSaved.toLocaleString('id-ID')}</td>
-                  <td className="py-4 px-4 text-slate-400">- Rp {r.adminFee.toLocaleString('id-ID')}</td>
+                  <td className="py-4 px-4 text-slate-300">Rp {(r.totalSaved ?? 0).toLocaleString('id-ID')}</td>
+                  <td className="py-4 px-4 text-slate-400">- Rp {(r.adminFee ?? 0).toLocaleString('id-ID')}</td>
                   <td className="py-4 px-4 font-sans">
                     <div className="text-amber-300 text-[11px] font-semibold">{r.bundleName}</div>
-                    {r.bundlePrice > 0 && (
-                      <div className="text-[10px] text-slate-400 font-mono">- Rp {r.bundlePrice.toLocaleString('id-ID')}</div>
+                    {(r.bundlePrice ?? 0) > 0 && (
+                      <div className="text-[10px] text-slate-400 font-mono">- Rp {(r.bundlePrice ?? 0).toLocaleString('id-ID')}</div>
                     )}
                   </td>
                   <td className="py-4 px-4 text-rose-400">
-                    {r.emergencyWithdrawn > 0 ? `- Rp ${r.emergencyWithdrawn.toLocaleString('id-ID')}` : 'Rp 0'}
+                    {(r.emergencyWithdrawn ?? 0) > 0 ? `- Rp ${(r.emergencyWithdrawn ?? 0).toLocaleString('id-ID')}` : 'Rp 0'}
                   </td>
                   <td className="py-4 px-4 text-right font-black text-emerald-400 text-sm">
-                    Rp {r.netPayoutAmount.toLocaleString('id-ID')}
+                    Rp {(r.netPayoutAmount ?? 0).toLocaleString('id-ID')}
                   </td>
                   <td className="hidden print:table-cell py-4 px-4 text-center">
                     <div className="h-10 border-b border-dashed border-slate-400 w-28 mx-auto" />
@@ -176,7 +176,7 @@ export default function AdminDistribusiPage() {
             </p>
           </div>
           <div className="text-right text-[10px] text-slate-600 font-mono">
-            Total Kas Dibagikan: Rp {totalDisbursedCash.toLocaleString('id-ID')}
+            Total Kas Dibagikan: Rp {(totalDisbursedCash ?? 0).toLocaleString('id-ID')}
           </div>
         </div>
 

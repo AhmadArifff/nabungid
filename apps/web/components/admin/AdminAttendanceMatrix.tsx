@@ -127,7 +127,7 @@ export const AdminAttendanceMatrix: React.FC<AdminAttendanceMatrixProps> = () =>
           <div>
             <div className="text-[11px] text-slate-400 font-medium">Total Kas Terhimpun:</div>
             <div className="text-xl font-black font-mono text-emerald-400">
-              Rp {totalKasMatrix.toLocaleString('id-ID')}
+              Rp {(totalKasMatrix ?? 0).toLocaleString('id-ID')}
             </div>
             <div className="text-[10px] text-slate-400">{attendanceMembers.length} Nasabah Aktif di Database</div>
           </div>
@@ -437,7 +437,7 @@ export const AdminAttendanceMatrix: React.FC<AdminAttendanceMatrixProps> = () =>
               <div className="flex justify-between py-1 border-b border-white/5">
                 <span className="text-slate-400">Nominal Setoran:</span>
                 <span className="font-mono font-bold text-white">
-                  Rp {selectedCellAction.amount.toLocaleString('id-ID')}
+                  Rp {(selectedCellAction?.amount ?? 0).toLocaleString('id-ID')}
                 </span>
               </div>
             </div>

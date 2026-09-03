@@ -77,7 +77,7 @@ export default function PaketPage() {
                   <div className="flex items-center justify-between pt-4 border-t border-white/10 mb-4">
                     <span className="text-xs text-slate-400">Total Harga Paket:</span>
                     <span className="text-lg font-black font-mono text-amber-400">
-                      Rp {item.bundlePrice.toLocaleString('id-ID')}
+                      Rp {(item.bundlePrice ?? 0).toLocaleString('id-ID')}
                     </span>
                   </div>
 

@@ -97,7 +97,7 @@ export const ParcelBuilderSection: React.FC = () => {
                         {item.name}
                       </h4>
                       <div className="text-amber-400 font-mono font-bold text-sm mt-1">
-                        Rp {item.price.toLocaleString('id-ID')}
+                        Rp {(item.price ?? 0).toLocaleString('id-ID')}
                       </div>
                     </div>
 
@@ -171,11 +171,11 @@ export const ParcelBuilderSection: React.FC = () => {
                       <div className="flex-1 pr-2">
                         <div className="font-semibold text-white truncate">{item.name}</div>
                         <div className="text-slate-400 text-[11px]">
-                          {item.quantity} x Rp {item.price.toLocaleString('id-ID')}
+                          {item.quantity} x Rp {(item.price ?? 0).toLocaleString('id-ID')}
                         </div>
                       </div>
                       <div className="font-mono font-bold text-amber-400">
-                        Rp {(item.price * item.quantity).toLocaleString('id-ID')}
+                        Rp {((item.price ?? 0) * (item.quantity ?? 1)).toLocaleString('id-ID')}
                       </div>
                     </div>
                   ))
@@ -187,7 +187,7 @@ export const ParcelBuilderSection: React.FC = () => {
                 <div className="flex justify-between text-slate-300">
                   <span>Total Nilai Barang Parcel:</span>
                   <span className="font-mono font-bold text-white text-sm">
-                    <SlidingNumber value={totalPrice} prefix="Rp " />
+                    <SlidingNumber value={totalPrice ?? 0} prefix="Rp " />
                   </span>
                 </div>
               </div>
@@ -199,10 +199,10 @@ export const ParcelBuilderSection: React.FC = () => {
                   <span>Saran Nominal Tabungan:</span>
                 </div>
                 <div className="text-2xl font-extrabold text-amber-300 font-mono">
-                  <SlidingNumber value={recommendedWeekly} prefix="Rp " suffix="/mgg" />
+                  <SlidingNumber value={recommendedWeekly ?? 0} prefix="Rp " suffix="/mgg" />
                 </div>
                 <p className="text-[11px] text-slate-300 leading-relaxed">
-                  Dengan nabung Rp {recommendedWeekly.toLocaleString('id-ID')}/minggu, Anda akan mendapatkan seluruh parcel di atas{' '}
+                  Dengan nabung Rp {(recommendedWeekly ?? 0).toLocaleString('id-ID')}/minggu, Anda akan mendapatkan seluruh parcel di atas{' '}
                   <strong>+ sisa uang tunai ~Rp 1.000.000</strong> di H-1 Idul Fitri!
                 </p>
               </div>

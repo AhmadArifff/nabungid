@@ -79,7 +79,7 @@ export default function AdminVerifikasiPage() {
                     <div className="text-xs text-slate-300 font-mono mt-1">
                       Minggu ke-{item.weekNumber} •{' '}
                       <span className="text-amber-300 font-bold">
-                        Rp {item.amount.toLocaleString('id-ID')}
+                        Rp {(item.amount ?? 0).toLocaleString('id-ID')}
                       </span>
                     </div>
                   </div>
