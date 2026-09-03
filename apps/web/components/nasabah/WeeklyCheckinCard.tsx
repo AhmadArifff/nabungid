@@ -100,7 +100,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
               <div className="text-xs text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
                 <span>WhatsApp: <strong className="text-white font-mono">{user?.phoneNumber || '081234567890'}</strong></span>
                 <span>•</span>
-                <span>Program: <strong className="text-amber-300">Rp {program.weeklyNominal.toLocaleString('id-ID')} / Minggu</strong></span>
+                <span>Program: <strong className="text-amber-300">Rp {program?.weeklyNominal?.toLocaleString('id-ID') || 0} / Minggu</strong></span>
               </div>
             </div>
           </div>

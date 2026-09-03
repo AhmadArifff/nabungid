@@ -24,7 +24,7 @@ import { WeeklyLedgerItem } from '@nabungid/shared';
 
 export default function NasabahDashboardPage() {
   const { user } = useAuthStore();
-  const { program, bundle, ledgers, withdrawals, payWeek, getPayoutSummary } = useNasabahStore();
+  const { program, bundle, ledgers, withdrawals, payWeek, getPayoutSummary, fetchMySavings } = useNasabahStore();
   const [selectedLedger, setSelectedLedger] = useState<WeeklyLedgerItem | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
@@ -39,6 +39,35 @@ export default function NasabahDashboardPage() {
     setSelectedLedger(ledger);
     setIsUploadOpen(true);
   };
+  const [isLoading, setIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetchMySavings().finally(() => {
+      setIsLoading(false);
+    });
+  }, [fetchMySavings]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!program) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4 text-center">
+        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center">
+          <ShieldAlert className="w-8 h-8 text-slate-400" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-white">Belum Terdaftar Program Tabungan</h2>
+          <p className="text-sm text-slate-400 mt-1 max-w-md">Anda belum terdaftar atau program tabungan sedang tidak aktif. Silakan hubungi Admin.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

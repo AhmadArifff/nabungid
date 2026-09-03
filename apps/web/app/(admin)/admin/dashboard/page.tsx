@@ -22,16 +22,18 @@ export default function AdminDashboardPage() {
     pendingWithdrawals,
     items,
     bundles,
+    metrics,
     fetchAttendanceMatrix,
+    fetchDashboardMetrics,
   } = useAdminStore();
 
   useEffect(() => {
+    fetchDashboardMetrics();
     fetchAttendanceMatrix();
-  }, [fetchAttendanceMatrix]);
+  }, [fetchAttendanceMatrix, fetchDashboardMetrics]);
 
-  const totalKasTerkumpul = attendanceMembers.reduce((sum, m) => sum + (m.totalSaved || 0), 0);
-  const totalNasabah = attendanceMembers.length > 0 ? attendanceMembers.length : 28;
-  const kasDisplay = totalKasTerkumpul > 0 ? totalKasTerkumpul : 45000000;
+  const totalNasabah = metrics ? metrics.totalNasabah : 0;
+  const kasDisplay = metrics ? metrics.totalKasTerkumpul : 0;
 
   return (
     <div className="space-y-6">
@@ -50,6 +52,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => {
+              fetchDashboardMetrics();
               fetchAttendanceMatrix();
             }}
             className="p-2.5 rounded-xl bg-slate-850 border border-white/10 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
