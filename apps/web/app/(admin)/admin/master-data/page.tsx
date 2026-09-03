@@ -7,10 +7,14 @@ import { Database, Plus, Trash2, Edit2, CheckCircle2, ShoppingBag, Package, Cale
 import { ProductItem, PackageBundle } from '@nabungid/shared';
 
 export default function AdminMasterDataPage() {
-  const { items, bundles, programs, addProductItem, deleteProductItem, addBundle, deleteBundle } = useAdminStore();
+  const { items, bundles, programs, addProductItem, deleteProductItem, addBundle, deleteBundle, fetchMasterData } = useAdminStore();
   const { success } = useToastStore();
   const [activeTab, setActiveTab] = useState<'ITEMS' | 'BUNDLES' | 'PROGRAMS'>('ITEMS');
   const [searchQuery, setSearchQuery] = useState('');
+
+  React.useEffect(() => {
+    fetchMasterData();
+  }, [fetchMasterData]);
 
   // Form State for New Item
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);

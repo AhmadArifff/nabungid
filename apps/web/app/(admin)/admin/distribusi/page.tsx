@@ -1,34 +1,33 @@
 'use client';
 
-import React from 'react';
-import { Gift, Download, Printer } from 'lucide-react';
-import { calculateEndCyclePayout } from '@nabungid/shared';
+import React, { useEffect, useState } from 'react';
+import { Gift, Download, Printer, RefreshCw } from 'lucide-react';
 import { useToastStore } from '../../../../stores/useToastStore';
+import { useAdminStore } from '../../../../stores/useAdminStore';
 import { exportDistributionManifestToExcel } from '../../../../lib/excel-export';
-
-// Mock active member savings list for batch distribution calculation
-const mockMembers = [
-  { id: '1', name: 'Ahmad Arif', phone: '081234567890', totalSaved: 5000000, adminFee: 25000, bundleName: 'Paket Sembako Berkah', bundlePrice: 318000, emergencyWithdrawn: 0 },
-  { id: '2', name: 'Siti Rahmawati', phone: '085711223344', totalSaved: 5000000, adminFee: 25000, bundleName: 'Paket Kue & Snack', bundlePrice: 291000, emergencyWithdrawn: 400000 },
-  { id: '3', name: 'Budi Santoso', phone: '081987654321', totalSaved: 4800000, adminFee: 25000, bundleName: 'Paket Perabotan Dapur', bundlePrice: 330000, emergencyWithdrawn: 0 },
-  { id: '4', name: 'Dewi Lestari', phone: '082133445566', totalSaved: 5000000, adminFee: 25000, bundleName: 'Tanpa Paket', bundlePrice: 0, emergencyWithdrawn: 500000 },
-  { id: '5', name: 'Eko Prasetyo', phone: '081377889900', totalSaved: 5000000, adminFee: 25000, bundleName: 'Paket Sembako Berkah', bundlePrice: 318000, emergencyWithdrawn: 0 },
-];
 
 export default function AdminDistribusiPage() {
   const { success } = useToastStore();
+  const { distributionBatch, fetchDistributionBatch } = useAdminStore();
+  const [isLoading, setIsLoading] = useState(true);
 
-  const payoutRows = mockMembers.map((m) => {
-    const payout = calculateEndCyclePayout({
-      totalSavedAmount: m.totalSaved,
-      adminFeeAmount: m.adminFee,
-      packageGoodsAmount: m.bundlePrice,
-      emergencyDeductionAmount: m.emergencyWithdrawn,
-    });
-    return { ...m, payout };
-  });
+  useEffect(() => {
+    fetchDistributionBatch().finally(() => setIsLoading(false));
+  }, [fetchDistributionBatch]);
 
-  const totalDisbursedCash = payoutRows.reduce((sum, r) => sum + r.payout.netPayoutAmount, 0);
+  const payoutRows = distributionBatch.map((m) => ({
+    id: m.memberSavingId,
+    name: m.userName,
+    phone: m.userPhone,
+    totalSaved: m.totalSavedAmount,
+    adminFee: m.adminFeeAmount,
+    bundleName: m.bundleName || 'Tanpa Paket',
+    bundlePrice: m.packageGoodsAmount,
+    emergencyWithdrawn: m.emergencyDeductionAmount,
+    netPayoutAmount: m.netPayoutAmount,
+  }));
+
+  const totalDisbursedCash = payoutRows.reduce((sum, r) => sum + r.netPayoutAmount, 0);
 
   const handleExportExcel = () => {
     const manifestData = payoutRows.map((r) => ({
@@ -40,7 +39,7 @@ export default function AdminDistribusiPage() {
       adminFeeAmount: r.adminFee,
       packageGoodsAmount: r.bundlePrice,
       emergencyDeductionAmount: r.emergencyWithdrawn,
-      netPayoutAmount: r.payout.netPayoutAmount,
+      netPayoutAmount: r.netPayoutAmount,
       status: 'SIAP DICAIRKAN',
     }));
 
@@ -130,31 +129,39 @@ export default function AdminDistribusiPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5 font-mono">
-            {payoutRows.map((r) => (
-              <tr key={r.id} className="hover:bg-white/[0.02] transition-colors">
-                <td className="py-4 px-4 font-sans font-bold text-white">
-                  <div>{r.name}</div>
-                  <div className="text-[10px] text-slate-500 font-mono">{r.phone}</div>
-                </td>
-                <td className="py-4 px-4 text-slate-300">Rp {r.totalSaved.toLocaleString('id-ID')}</td>
-                <td className="py-4 px-4 text-slate-400">- Rp {r.adminFee.toLocaleString('id-ID')}</td>
-                <td className="py-4 px-4 font-sans">
-                  <div className="text-amber-300 text-[11px] font-semibold">{r.bundleName}</div>
-                  {r.bundlePrice > 0 && (
-                    <div className="text-[10px] text-slate-400 font-mono">- Rp {r.bundlePrice.toLocaleString('id-ID')}</div>
-                  )}
-                </td>
-                <td className="py-4 px-4 text-rose-400">
-                  {r.emergencyWithdrawn > 0 ? `- Rp ${r.emergencyWithdrawn.toLocaleString('id-ID')}` : 'Rp 0'}
-                </td>
-                <td className="py-4 px-4 text-right font-black text-emerald-400 text-sm">
-                  Rp {r.payout.netPayoutAmount.toLocaleString('id-ID')}
-                </td>
-                <td className="hidden print:table-cell py-4 px-4 text-center">
-                  <div className="h-10 border-b border-dashed border-slate-400 w-28 mx-auto" />
+            {payoutRows.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-12 text-center text-xs text-slate-500 font-sans">
+                  Belum ada data nasabah aktif yang siap untuk kalkulasi distribusi.
                 </td>
               </tr>
-            ))}
+            ) : (
+              payoutRows.map((r) => (
+                <tr key={r.id} className="hover:bg-white/[0.02] transition-colors">
+                  <td className="py-4 px-4 font-sans font-bold text-white">
+                    <div>{r.name}</div>
+                    <div className="text-[10px] text-slate-500 font-mono">{r.phone}</div>
+                  </td>
+                  <td className="py-4 px-4 text-slate-300">Rp {r.totalSaved.toLocaleString('id-ID')}</td>
+                  <td className="py-4 px-4 text-slate-400">- Rp {r.adminFee.toLocaleString('id-ID')}</td>
+                  <td className="py-4 px-4 font-sans">
+                    <div className="text-amber-300 text-[11px] font-semibold">{r.bundleName}</div>
+                    {r.bundlePrice > 0 && (
+                      <div className="text-[10px] text-slate-400 font-mono">- Rp {r.bundlePrice.toLocaleString('id-ID')}</div>
+                    )}
+                  </td>
+                  <td className="py-4 px-4 text-rose-400">
+                    {r.emergencyWithdrawn > 0 ? `- Rp ${r.emergencyWithdrawn.toLocaleString('id-ID')}` : 'Rp 0'}
+                  </td>
+                  <td className="py-4 px-4 text-right font-black text-emerald-400 text-sm">
+                    Rp {r.netPayoutAmount.toLocaleString('id-ID')}
+                  </td>
+                  <td className="hidden print:table-cell py-4 px-4 text-center">
+                    <div className="h-10 border-b border-dashed border-slate-400 w-28 mx-auto" />
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

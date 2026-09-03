@@ -6,11 +6,16 @@ import { useToastStore } from '../../../../stores/useToastStore';
 import { ShieldAlert, Check, X, Phone, AlertTriangle } from 'lucide-react';
 
 export default function AdminPenarikanPage() {
-  const { pendingWithdrawals, approveWithdrawal } = useAdminStore();
+  const { pendingWithdrawals, approveWithdrawal, fetchPendingWithdrawals } = useAdminStore();
   const { success, warning } = useToastStore();
 
-  const handleDecision = (id: string, approve: boolean) => {
-    approveWithdrawal(id, approve);
+  React.useEffect(() => {
+    fetchPendingWithdrawals();
+  }, [fetchPendingWithdrawals]);
+
+  const handleDecision = async (id: string, approve: boolean) => {
+    await approveWithdrawal(id, approve);
+    fetchPendingWithdrawals();
     if (approve) {
       success('Penarikan darurat nasabah disetujui & dana dicairkan.');
     } else {

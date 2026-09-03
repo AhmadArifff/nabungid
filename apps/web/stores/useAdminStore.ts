@@ -44,6 +44,20 @@ export interface AttendanceMatrixMember {
   }>;
 }
 
+export interface DistributionBatchItem {
+  memberSavingId: string;
+  userName: string;
+  userPhone: string;
+  bundleName?: string;
+  totalSavedAmount: number;
+  adminFeeAmount: number;
+  packageGoodsAmount: number;
+  emergencyDeductionAmount: number;
+  netPayoutAmount: number;
+  payoutDate: string;
+  isDisbursed: boolean;
+}
+
 interface DashboardMetrics {
   totalNasabah: number;
   totalKasTerkumpul: number;
@@ -61,11 +75,15 @@ interface AdminState {
   pendingLedgers: PendingLedgerItem[];
   pendingWithdrawals: PendingWithdrawalItem[];
   attendanceMembers: AttendanceMatrixMember[];
+  distributionBatch: DistributionBatchItem[];
   isLoadingMatrix: boolean;
   metrics: DashboardMetrics | null;
 
   // Real API Actions
   fetchDashboardMetrics: () => Promise<void>;
+  fetchPendingLedgers: () => Promise<void>;
+  fetchPendingWithdrawals: () => Promise<void>;
+  fetchDistributionBatch: () => Promise<void>;
   fetchMasterData: () => Promise<void>;
   
   // Master Data Actions
@@ -102,6 +120,7 @@ export const useAdminStore = create<AdminState>()(
       pendingLedgers: [],
       pendingWithdrawals: [],
       attendanceMembers: [],
+      distributionBatch: [],
       isLoadingMatrix: false,
       metrics: null,
 
@@ -109,16 +128,71 @@ export const useAdminStore = create<AdminState>()(
         try {
           const res = await ApiClient.get('/admin/dashboard/summary');
           if (res.success && res.data) {
-            set({ metrics: res.data });
+            set({ 
+              metrics: {
+                totalNasabah: res.data.totalNasabah || 0,
+                totalKasTerkumpul: res.data.totalKas || 0,
+                pendingVerifications: res.data.pendingLedgersCount || 0,
+                pendingWithdrawals: res.data.pendingWithdrawalsCount || 0,
+                activePrograms: res.data.activePrograms || 0,
+                totalBundles: res.data.totalBundles || 0,
+              } 
+            });
           }
         } catch (error) {
           console.error("Failed to fetch metrics", error);
         }
       },
 
+      fetchPendingLedgers: async () => {
+        try {
+          const res = await ApiClient.get('/admin/ledgers/pending');
+          if (res.success && Array.isArray(res.data)) {
+            set({ pendingLedgers: res.data });
+          }
+        } catch (error) {
+          console.error("Failed to fetch pending ledgers", error);
+        }
+      },
+
+      fetchPendingWithdrawals: async () => {
+        try {
+          const res = await ApiClient.get('/admin/withdrawals');
+          if (res.success && Array.isArray(res.data)) {
+            set({ pendingWithdrawals: res.data });
+          }
+        } catch (error) {
+          console.error("Failed to fetch pending withdrawals", error);
+        }
+      },
+
+      fetchDistributionBatch: async () => {
+        try {
+          const res = await ApiClient.get('/admin/distribution/calculate-batch');
+          if (res.success && Array.isArray(res.data)) {
+            set({ distributionBatch: res.data });
+          }
+        } catch (error) {
+          console.error("Failed to fetch distribution batch", error);
+        }
+      },
+
       fetchMasterData: async () => {
         try {
-          // Dummy for now until full catalog endpoints are added if they exist
+          const [progRes, catRes, bundleRes] = await Promise.all([
+            ApiClient.get('/programs/active'),
+            ApiClient.get('/programs/categories'),
+            ApiClient.get('/programs/catalog-packages'),
+          ]);
+          if (progRes.success && progRes.data) {
+            set({ programs: Array.isArray(progRes.data) ? progRes.data : [progRes.data] });
+          }
+          if (catRes.success && Array.isArray(catRes.data)) {
+            set({ categories: catRes.data });
+          }
+          if (bundleRes.success && Array.isArray(bundleRes.data)) {
+            set({ bundles: bundleRes.data });
+          }
         } catch (error) {
           console.error("Failed to fetch master data", error);
         }

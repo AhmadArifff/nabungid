@@ -6,12 +6,17 @@ import { useToastStore } from '../../../../stores/useToastStore';
 import { CheckSquare, Check, X, Eye, Phone, Calendar, Sparkles } from 'lucide-react';
 
 export default function AdminVerifikasiPage() {
-  const { pendingLedgers, verifyLedger } = useAdminStore();
+  const { pendingLedgers, verifyLedger, fetchPendingLedgers } = useAdminStore();
   const { success, warning } = useToastStore();
   const [selectedProof, setSelectedProof] = useState<string | null>(null);
 
-  const handleVerify = (id: string, approve: boolean) => {
-    verifyLedger(id, approve);
+  React.useEffect(() => {
+    fetchPendingLedgers();
+  }, [fetchPendingLedgers]);
+
+  const handleVerify = async (id: string, approve: boolean) => {
+    await verifyLedger(id, approve);
+    fetchPendingLedgers();
     if (approve) {
       success('Setoran nasabah berhasil disetujui dan saldo diperbarui.');
     } else {

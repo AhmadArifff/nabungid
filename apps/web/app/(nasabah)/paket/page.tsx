@@ -8,7 +8,11 @@ import { PackageBundle } from '@nabungid/shared';
 
 export default function PaketPage() {
   const { bundle: selectedBundle, selectBundle } = useNasabahStore();
-  const { bundles } = useAdminStore();
+  const { bundles, fetchMasterData } = useAdminStore();
+
+  React.useEffect(() => {
+    fetchMasterData();
+  }, [fetchMasterData]);
 
   return (
     <div className="space-y-6">
@@ -24,8 +28,13 @@ export default function PaketPage() {
         </p>
       </div>
 
-      {/* Package Options Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {bundles.length === 0 ? (
+        <div className="p-12 text-center text-xs text-slate-500 rounded-3xl bg-slate-900/60 border border-white/10">
+          Belum ada katalog paket barang atau sembako yang aktif saat ini.
+        </div>
+      ) : (
+        /* Package Options Cards */
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {bundles.map((item) => {
           const isSelected = selectedBundle?.id === item.id;
 
@@ -94,7 +103,8 @@ export default function PaketPage() {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
