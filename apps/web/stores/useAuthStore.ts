@@ -8,8 +8,8 @@ interface AuthState {
   user: UserProfile | null;
   isAuthenticated: boolean;
   role: Role | null;
-  loginAsNasabah: (email?: string, name?: string) => void;
-  loginAsAdmin: (email?: string, name?: string) => void;
+  token: string | null;
+  setCredentials: (user: UserProfile, token: string) => void;
   logout: () => void;
   updateProfile: (data: Partial<UserProfile>) => void;
 }
@@ -17,50 +17,24 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: {
-        id: 'usr-nasabah-01',
-        name: 'Ahmad Arif',
-        email: 'ahmad@example.com',
-        phoneNumber: '081234567890',
-        role: 'NASABAH',
-        avatarUrl: undefined,
-        address: 'Jl. Merdeka No. 45, Jakarta Selatan',
-      },
-      isAuthenticated: true,
-      role: 'NASABAH',
+      user: null,
+      isAuthenticated: false,
+      role: null,
+      token: null,
 
-      loginAsNasabah: (email = 'ahmad@example.com', name = 'Ahmad Arif') => {
+      setCredentials: (user, token) => {
         set({
-          user: {
-            id: 'usr-nasabah-01',
-            name,
-            email,
-            phoneNumber: '081234567890',
-            role: 'NASABAH',
-            address: 'Jl. Merdeka No. 45, Jakarta Selatan',
-          },
+          user,
+          token,
+          role: user.role,
           isAuthenticated: true,
-          role: 'NASABAH',
-        });
-      },
-
-      loginAsAdmin: (email = 'admin@nabungid.com', name = 'Admin Pengelola') => {
-        set({
-          user: {
-            id: 'usr-admin-01',
-            name,
-            email,
-            phoneNumber: '089988776655',
-            role: 'ADMIN',
-          },
-          isAuthenticated: true,
-          role: 'ADMIN',
         });
       },
 
       logout: () => {
         set({
           user: null,
+          token: null,
           isAuthenticated: false,
           role: null,
         });

@@ -20,7 +20,6 @@ DIRECT_URL=postgresql://postgres.ztaasxrrmfrzzplmupjh:GHk6Npb6HahgsWH4@aws-0-ap-
 JWT_SECRET=nabungid_secure_jwt_secret_key_1447h_2026m
 JWT_EXPIRES_IN=7d
 PORT=5000
-NODE_ENV=production
 SUPABASE_URL=https://ztaasxrrmfrzzplmupjh.supabase.co
 CORS_ORIGIN=*
 ```
