@@ -3,14 +3,15 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Coins, User, ShieldCheck, ArrowRight, Lock, Phone, Eye, EyeOff, Sparkles, HelpCircle } from 'lucide-react';
+import { Coins, User, ShieldCheck, ArrowRight, Lock, Phone, Mail, Eye, EyeOff, Sparkles, HelpCircle } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 
 export const LoginForm: React.FC = () => {
   const router = useRouter();
   const { setCredentials } = useAuthStore();
   const [selectedRole, setSelectedRole] = useState<'NASABAH' | 'ADMIN'>('NASABAH');
-  const [phoneOrEmail, setPhoneOrEmail] = useState('081234567890');
+  const [loginMethod, setLoginMethod] = useState<'PHONE' | 'EMAIL'>('PHONE');
+  const [identifier, setIdentifier] = useState('081234567890');
   const [password, setPassword] = useState('Nasabah123!');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +25,7 @@ export const LoginForm: React.FC = () => {
     try {
       const { ApiClient } = await import('../../lib/api-client');
       const response = await ApiClient.post('/auth/login', {
-        identifier: phoneOrEmail,
+        identifier: identifier.trim(),
         password,
       });
 
@@ -46,14 +47,49 @@ export const LoginForm: React.FC = () => {
     }
   };
 
+  // Strict Phone Handler: only allow digits (0-9), auto strip non-digits, auto convert 628 to 08
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/[^0-9]/g, '');
+    if (val.startsWith('628')) {
+      val = '08' + val.slice(3);
+    }
+    if (val.length <= 14) {
+      setIdentifier(val);
+    }
+  };
+
+  const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const allowedKeys = [
+      'Backspace',
+      'Delete',
+      'Tab',
+      'Enter',
+      'Escape',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Home',
+      'End',
+    ];
+    if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+      return;
+    }
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const handleQuickDemo = (role: 'NASABAH' | 'ADMIN') => {
     setSelectedRole(role);
     setErrorMsg('');
     if (role === 'NASABAH') {
-      setPhoneOrEmail('081234567890');
+      setLoginMethod('PHONE');
+      setIdentifier('081234567890');
       setPassword('Nasabah123!');
     } else {
-      setPhoneOrEmail('admin@nabungid.com');
+      setLoginMethod('EMAIL');
+      setIdentifier('admin@nabungid.com');
       setPassword('Admin123!');
     }
   };
@@ -121,27 +157,80 @@ export const LoginForm: React.FC = () => {
 
         {/* Form Fields */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Method Sub-Tabs (No. WhatsApp vs Email/Username) */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">
-              {selectedRole === 'NASABAH'
-                ? 'Username, Email, atau No. WhatsApp'
-                : 'Email, Username, atau No. WA Admin'}
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center space-x-1 bg-slate-950/70 p-0.5 rounded-lg border border-white/10 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMethod('PHONE');
+                    setIdentifier('');
+                  }}
+                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                    loginMethod === 'PHONE'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  No. WhatsApp
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMethod('EMAIL');
+                    setIdentifier('');
+                  }}
+                  className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                    loginMethod === 'EMAIL'
+                      ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30 shadow'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Email / Username
+                </button>
+              </div>
+              {loginMethod === 'PHONE' && (
+                <span className="text-[10px] text-amber-400 font-medium">Hanya Angka (0-9)</span>
+              )}
+            </div>
+
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
-                <Phone className="w-4 h-4" />
+                {loginMethod === 'PHONE' ? <Phone className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
               </div>
-              <input
-                type="text"
-                required
-                value={phoneOrEmail}
-                onChange={(e) => setPhoneOrEmail(e.target.value)}
-                placeholder={selectedRole === 'NASABAH' ? '081234567890 / ahmad@example.com' : 'admin@nabungid.com'}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/60 border border-white/10 text-white text-sm focus:outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/60 transition-colors placeholder:text-slate-600"
-              />
+              {loginMethod === 'PHONE' ? (
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={14}
+                  required
+                  value={identifier}
+                  onChange={handlePhoneChange}
+                  onKeyDown={handlePhoneKeyDown}
+                  placeholder="081234567890 (Wajib angka murni)"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/60 border border-white/10 text-white text-sm focus:outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/60 transition-colors placeholder:text-slate-600 font-mono tracking-wide"
+                />
+              ) : (
+                <input
+                  type="text"
+                  required
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="admin@nabungid.com / Admin Pengelola"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/60 border border-white/10 text-white text-sm focus:outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/60 transition-colors placeholder:text-slate-600"
+                />
+              )}
             </div>
+            {loginMethod === 'PHONE' && identifier.length > 0 && (
+              <p className="text-[10px] text-slate-400 mt-1">
+                {identifier.startsWith('08') ? '✓ Diawali 08' : '⚠️ Awali dengan 08'} • Panjang: {identifier.length} digit
+              </p>
+            )}
           </div>
 
+          {/* Password Field with Eye Toggle */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-medium text-slate-300">Password</label>

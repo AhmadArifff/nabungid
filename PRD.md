@@ -246,6 +246,38 @@ Sesuai standar arsitektur `/pm` & `/backend`, seluruh entitas bisnis dikelola di
 
 ---
 
+### 4.9 Spesifikasi Standar Validasi Input Form Autentikasi & Keamanan Data (/pm, /frontend, /backend, /qa)
+
+Untuk menjamin integritas data nasabah, reliabilitas sistem perpesanan WhatsApp, dan mencegah kesalahan human input:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                   STRICT AUTH & NUMERIC INPUT VALIDATION SPECIFICATION                 │
+├───────────────────┬───────────────────────────────┬────────────────────────────────────┤
+│ Field Input       │ Aturan Validasi Frontend      │ Aturan Validasi Backend & Database │
+├───────────────────┼───────────────────────────────┼────────────────────────────────────┤
+│ Nomor WhatsApp    │ • Hanya menerima digit 0-9    │ • Regex: ^08[0-9]{8,12}$           │
+│                   │ • onKeyDown blokir huruf/simbl│ • Normalisasi otomatis 628 -> 08   │
+│                   │ • inputMode="numeric"         │ • Pengecekan unik mandiri (409)    │
+│                   │ • Panjang 10–14 digit         │ • Pesan konflik spesifik WhatsApp  │
+├───────────────────┼───────────────────────────────┼────────────────────────────────────┤
+│ Alamat Email      │ • Validasi format email RFC   │ • Lowercase & trim sanitasi        │
+│                   │ • Wajib diisi saat register   │ • Pengecekan unik mandiri (409)    │
+│                   │ • Tautan langsung ke Login    │ • Pesan konflik spesifik Email     │
+├───────────────────┼───────────────────────────────┼────────────────────────────────────┤
+│ Password Akun     │ • Minimal 6 karakter          │ • Minimal 6 karakter (Zod schema)  │
+│                   │ • Toggle Show/Hide Password   │ • Hashed via Bcrypt salt 10 rounds │
+├───────────────────┼───────────────────────────────┼────────────────────────────────────┤
+│ Konfirmasi Sandi  │ • Wajib sama dengan Password  │ • Evaluasi kecocokan sebelum hash  │
+│                   │ • Indikator status real-time  │ • Blokir pendaftaran jika mismatch │
+├───────────────────┼───────────────────────────────┼────────────────────────────────────┤
+│ Pilihan Nominal   │ • Radio nominal: 50k, 100k,   │ • Auto-enrollment ke Siklus Aktif  │
+│ Setoran           │   200k per minggu             │ • Generate 50 baris WeeklyLedger   │
+└───────────────────┴───────────────────────────────┴────────────────────────────────────┘
+```
+
+---
+
 ## 5. System Architecture & Monorepo Structure
 
 Aplikasi dibangun menggunakan arsitektur **Turborepo Monorepo**:
