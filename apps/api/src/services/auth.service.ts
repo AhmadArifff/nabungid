@@ -37,6 +37,16 @@ export class AuthService {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = normalizePhoneNumber(phoneNumber);
 
+    // Guard 0a: Reject letters and special characters in raw phoneNumber
+    if (/[a-zA-Z]/.test(phoneNumber) || !/^[0-9+ -]+$/.test(phoneNumber.trim())) {
+      return Result.fail('Nomor WhatsApp tidak valid. Tidak boleh mengandung huruf atau simbol.', 400);
+    }
+
+    // Guard 0b: Validate strict numerical format (starts with 08, 10-14 digits, digits only)
+    if (!/^08[0-9]{8,12}$/.test(cleanPhone)) {
+      return Result.fail('Nomor WhatsApp tidak valid. Harus berupa angka murni, diawali 08, dan berdurasi 10-14 digit.', 400);
+    }
+
     // Guard 1: Check existing user by phone number
     const existingPhone = await prisma.user.findFirst({
       where: {

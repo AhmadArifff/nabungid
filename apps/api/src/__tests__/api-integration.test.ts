@@ -102,6 +102,28 @@ async function runApiIntegrationTests() {
       });
     assert(duplicateEmailRes.status === 409, 'Duplicate Email Registration Blocked (409 Conflict)');
 
+    // 4f. Register Guard: String / Letter in Phone Number Rejection
+    const stringPhoneRes = await request(app)
+      .post('/api/v1/auth/register')
+      .send({
+        name: 'User Phone String',
+        phoneNumber: '0812huruf3456',
+        email: 'stringphone@example.com',
+        password: 'Password123!',
+      });
+    assert(stringPhoneRes.status === 400, 'Non-numeric String Phone Number Blocked (400 Bad Request)');
+
+    // 4g. Register Guard: Invalid Short Phone Number Rejection
+    const shortPhoneRes = await request(app)
+      .post('/api/v1/auth/register')
+      .send({
+        name: 'User Phone Pendek',
+        phoneNumber: '08123',
+        email: 'shortphone@example.com',
+        password: 'Password123!',
+      });
+    assert(shortPhoneRes.status === 400, 'Invalid Short Phone Number Blocked (400 Bad Request)');
+
     // 5. Nasabah: Get My Savings
     console.log('\n📱 3. Testing Nasabah Portal Endpoints');
     const savingsRes = await request(app)

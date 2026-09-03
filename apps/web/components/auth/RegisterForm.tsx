@@ -25,6 +25,42 @@ export const RegisterForm: React.FC = () => {
   const isPasswordMatch = confirmPassword.length > 0 && password === confirmPassword;
   const isPasswordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
+  // Strict Phone Handler: only allow digits (0-9), auto-strip non-digits, auto convert 628 to 08
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/[^0-9]/g, '');
+    if (val.startsWith('628')) {
+      val = '08' + val.slice(3);
+    }
+    if (val.length <= 14) {
+      setPhone(val);
+    }
+  };
+
+  // Prevent any non-digit keys from being pressed in the input
+  const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const allowedKeys = [
+      'Backspace',
+      'Delete',
+      'Tab',
+      'Enter',
+      'Escape',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Home',
+      'End',
+    ];
+    if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+      return;
+    }
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  const isPhoneValid = phone.startsWith('08') && phone.length >= 10 && phone.length <= 14;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreed) return;
@@ -41,14 +77,8 @@ export const RegisterForm: React.FC = () => {
       return;
     }
 
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    if (cleanPhone.length < 10 || cleanPhone.length > 15) {
-      setErrorMsg('Nomor WhatsApp harus terdiri dari 10 sampai 15 digit angka.');
-      return;
-    }
-
-    if (!cleanPhone.startsWith('08') && !cleanPhone.startsWith('62')) {
-      setErrorMsg('Nomor WhatsApp harus diawali dengan 08 atau 62.');
+    if (!isPhoneValid) {
+      setErrorMsg('Nomor WhatsApp harus diawali dengan 08 dan terdiri dari 10 sampai 14 digit angka murni.');
       return;
     }
 
@@ -58,7 +88,7 @@ export const RegisterForm: React.FC = () => {
       const { ApiClient } = await import('../../lib/api-client');
       const response = await ApiClient.post('/auth/register', {
         name: name.trim(),
-        phoneNumber: cleanPhone,
+        phoneNumber: phone,
         email: email.trim().toLowerCase(),
         password,
         role: 'NASABAH',
@@ -119,25 +149,52 @@ export const RegisterForm: React.FC = () => {
             </div>
           </div>
 
-          {/* Nomor WhatsApp */}
+          {/* Nomor WhatsApp (Strict Numerical Only) */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              Nomor WhatsApp Aktif <span className="text-rose-400">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-slate-300">
+                Nomor WhatsApp Aktif <span className="text-rose-400">*</span>
+              </label>
+              <span className="text-[10px] text-amber-400 font-medium">Hanya Angka (0-9)</span>
+            </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                 <Phone className="w-4 h-4" />
               </div>
               <input
                 type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={14}
                 required
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="081234567890 (Tidak boleh sama dengan user lain)"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/60 border border-white/10 text-white text-sm focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/60 placeholder:text-slate-600 font-mono"
+                onChange={handlePhoneChange}
+                onKeyDown={handlePhoneKeyDown}
+                placeholder="081234567890 (Wajib angka murni)"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/60 border border-white/10 text-white text-sm focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/60 placeholder:text-slate-600 font-mono tracking-wide"
               />
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">Digunakan untuk login dan notifikasi pengingat mingguan.</p>
+            {/* Real-time Indicator */}
+            <div className="mt-1">
+              {phone.length === 0 ? (
+                <p className="text-[10px] text-slate-500">
+                  Masukkan nomor WhatsApp aktif Anda (10–14 digit angka).
+                </p>
+              ) : !phone.startsWith('08') ? (
+                <p className="text-[10px] text-amber-400 flex items-center space-x-1">
+                  <span>⚠️ Nomor harus diawali dengan angka 08</span>
+                </p>
+              ) : phone.length < 10 ? (
+                <p className="text-[10px] text-amber-400 flex items-center space-x-1">
+                  <span>⚠️ Masih kurang dari 10 digit ({phone.length}/10 digit)</span>
+                </p>
+              ) : (
+                <p className="text-[10px] text-emerald-400 flex items-center space-x-1">
+                  <CheckCircle2 className="w-3 h-3 inline shrink-0" />
+                  <span>Format nomor WhatsApp valid ({phone.length} digit angka murni)</span>
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Email */}
@@ -287,7 +344,7 @@ export const RegisterForm: React.FC = () => {
 
           <button
             type="submit"
-            disabled={isLoading || !agreed || isPasswordMismatch}
+            disabled={isLoading || !agreed || isPasswordMismatch || !isPhoneValid}
             className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white font-bold text-sm shadow-xl shadow-emerald-600/25 hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center space-x-2 mt-4 disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? (

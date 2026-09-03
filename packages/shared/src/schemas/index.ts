@@ -6,8 +6,8 @@ export const RegisterSchema = z.object({
   phoneNumber: z
     .string()
     .min(10, 'Nomor WhatsApp minimal 10 digit')
-    .max(16, 'Nomor WhatsApp maksimal 16 digit')
-    .regex(/^[0-9+ -]+$/, 'Nomor WhatsApp hanya boleh angka dan tanda +'),
+    .max(14, 'Nomor WhatsApp maksimal 14 digit')
+    .regex(/^08[0-9]{8,12}$/, 'Nomor WhatsApp harus diawali 08 dan terdiri dari 10-14 digit angka murni'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
   selectedNominal: z.number().optional(),
 });
