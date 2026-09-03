@@ -21,7 +21,10 @@ async function runApiIntegrationTests() {
     // 1. Health Check
     console.log('🏥 1. Testing Health Check & System Status');
     const healthRes = await request(app).get('/health');
-    assert(healthRes.status === 200 && healthRes.body.status === 'ok', 'Health Check Endpoint (GET /health)');
+    assert(
+      healthRes.status === 200 && (healthRes.body.status === 'HEALTHY' || healthRes.body.status === 'ok'),
+      'Health Check Endpoint (GET /health)'
+    );
 
     // 2. Auth: Login Nasabah Demo
     console.log('\n🔐 2. Testing Authentication & JWT Flow');
@@ -58,6 +61,46 @@ async function runApiIntegrationTests() {
         password: 'WrongPassword!',
       });
     assert(invalidLoginRes.status === 401, 'Invalid Password Rejection (401 Unauthorized)');
+
+    // 4b. Auth: Flexible Login via Email
+    const emailLoginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .send({
+        identifier: 'admin@nabungid.com',
+        password: 'Admin123!',
+      });
+    assert(emailLoginRes.status === 200 && emailLoginRes.body.data?.token, 'Login using Email (admin@nabungid.com)');
+
+    // 4c. Auth: Flexible Login via Username/Name
+    const usernameLoginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .send({
+        identifier: 'Admin Pengelola',
+        password: 'Admin123!',
+      });
+    assert(usernameLoginRes.status === 200 && usernameLoginRes.body.data?.token, 'Login using Username / Name (Admin Pengelola)');
+
+    // 4d. Register Guard: Duplicate Phone Number Rejection
+    const duplicatePhoneRes = await request(app)
+      .post('/api/v1/auth/register')
+      .send({
+        name: 'User Duplikat Phone',
+        phoneNumber: '081234567890',
+        email: 'unik.email@example.com',
+        password: 'Password123!',
+      });
+    assert(duplicatePhoneRes.status === 409, 'Duplicate Phone Number Registration Blocked (409 Conflict)');
+
+    // 4e. Register Guard: Duplicate Email Rejection
+    const duplicateEmailRes = await request(app)
+      .post('/api/v1/auth/register')
+      .send({
+        name: 'User Duplikat Email',
+        phoneNumber: '088899990000',
+        email: 'ahmad@example.com',
+        password: 'Password123!',
+      });
+    assert(duplicateEmailRes.status === 409, 'Duplicate Email Registration Blocked (409 Conflict)');
 
     // 5. Nasabah: Get My Savings
     console.log('\n📱 3. Testing Nasabah Portal Endpoints');

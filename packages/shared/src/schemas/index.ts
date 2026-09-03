@@ -6,13 +6,14 @@ export const RegisterSchema = z.object({
   phoneNumber: z
     .string()
     .min(10, 'Nomor WhatsApp minimal 10 digit')
-    .max(15, 'Nomor WhatsApp maksimal 15 digit')
-    .regex(/^[0-9+]+$/, 'Nomor WhatsApp hanya boleh angka dan tanda +'),
-  password: z.string().min(8, 'Password minimal 8 karakter'),
+    .max(16, 'Nomor WhatsApp maksimal 16 digit')
+    .regex(/^[0-9+ -]+$/, 'Nomor WhatsApp hanya boleh angka dan tanda +'),
+  password: z.string().min(6, 'Password minimal 6 karakter'),
+  selectedNominal: z.number().optional(),
 });
 
 export const LoginSchema = z.object({
-  identifier: z.string().min(3, 'Email atau nomor telepon harus diisi'),
+  identifier: z.string().min(2, 'Username, email atau nomor WhatsApp harus diisi'),
   password: z.string().min(1, 'Password harus diisi'),
 });
 
