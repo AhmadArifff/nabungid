@@ -49,6 +49,7 @@ import {
   ShoppingBag,
 } from 'lucide-react';
 import { CircularProgress } from '../nasabah/CircularProgress';
+import { SlidingNumber } from '../ui/SlidingNumber';
 
 export type SimulatorStep = 0 | 1 | 2;
 
@@ -117,6 +118,20 @@ export const CustomerAppSimulator: React.FC = () => {
 
   // States mirroring the real Dashboard
   const [checkedInWeek36, setCheckedInWeek36] = useState(false);
+  const [showCoinBurst, setShowCoinBurst] = useState(false);
+  const [checkinToast, setCheckinToast] = useState(false);
+  const [selectedDashboardPackage, setSelectedDashboardPackage] = useState<'sembako' | 'daging' | 'uang'>('sembako');
+
+  const handleToggleCheckinWeek36 = () => {
+    const nextVal = !checkedInWeek36;
+    setCheckedInWeek36(nextVal);
+    if (nextVal) {
+      setShowCoinBurst(true);
+      setCheckinToast(true);
+      setTimeout(() => setShowCoinBurst(false), 1400);
+      setTimeout(() => setCheckinToast(false), 3200);
+    }
+  };
 
   // ==========================================
   // PERSPECTIVE PHYSICS (DEFAULT 0 DEG LURUS)
@@ -756,8 +771,59 @@ export const CustomerAppSimulator: React.FC = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.96 }}
                       transition={{ duration: 0.2 }}
-                      className="space-y-3"
+                      className="space-y-3 relative"
                     >
+                      {/* Check-in Celebration Coin Burst Animation */}
+                      {showCoinBurst && (
+                        <div className="absolute top-2 right-4 pointer-events-none z-50 overflow-visible">
+                          {[...Array(10)].map((_, i) => {
+                            const angle = (i / 10) * 360;
+                            const dist = 36 + (i % 3) * 18;
+                            const x = Math.cos((angle * Math.PI) / 180) * dist;
+                            const y = Math.sin((angle * Math.PI) / 180) * dist - 25;
+                            return (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 1, scale: 0.2, x: 0, y: 0 }}
+                                animate={{
+                                  opacity: [1, 1, 0],
+                                  scale: [0.2, 1.25, 0.7],
+                                  x,
+                                  y,
+                                  rotate: angle * 2,
+                                }}
+                                transition={{ duration: 1.1, ease: 'easeOut' }}
+                                className="absolute flex items-center justify-center"
+                              >
+                                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-400 via-yellow-300 to-amber-500 border border-yellow-100 shadow-[0_0_12px_rgba(251,191,36,0.9)] flex items-center justify-center text-[10px] font-black text-slate-950">
+                                  🪙
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Toast Notification on Check-in */}
+                      <AnimatePresence>
+                        {checkinToast && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -15, scale: 0.92 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -15, scale: 0.92 }}
+                            className="p-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-slate-950 text-[11px] font-bold shadow-xl flex items-center justify-between border border-emerald-300"
+                          >
+                            <div className="flex items-center space-x-1.5">
+                              <Sparkles className="w-3.5 h-3.5 text-amber-200 animate-spin" />
+                              <span>Alhamdulillah! Cek-in Mg-36 Berhasil (+Rp 100rb)</span>
+                            </div>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-950/20 font-mono font-black">
+                              36 Mgg ✓
+                            </span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       {/* Top Welcome & Eid Countdown Alert identik Dashboard */}
                       <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-900/40 via-slate-900/80 to-slate-900/80 border border-emerald-500/20 backdrop-blur-xl">
                         <div className="flex items-center justify-between gap-2">
@@ -779,8 +845,14 @@ export const CustomerAppSimulator: React.FC = () => {
                           </div>
 
                           <button
-                            onClick={() => setCheckedInWeek36(!checkedInWeek36)}
-                            className="py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-[10px] shadow flex items-center space-x-1 shrink-0"
+                            type="button"
+                            onClick={handleToggleCheckinWeek36}
+                            className={`py-1.5 px-2.5 rounded-lg font-bold text-[10px] shadow flex items-center space-x-1 shrink-0 transition-all cursor-pointer active:scale-95 ${
+                              checkedInWeek36
+                                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 shadow-emerald-500/30 ring-1 ring-emerald-300'
+                                : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-amber-500/30 animate-pulse'
+                            }`}
+                            title="Klik untuk simulasi cek-in mingguan"
                           >
                             <Coins className="w-3 h-3" />
                             <span>{checkedInWeek36 ? 'Lunas ✓' : 'Cek-in Mg-36'}</span>
@@ -798,9 +870,9 @@ export const CustomerAppSimulator: React.FC = () => {
                             <div>
                               <div className="flex items-center space-x-1.5">
                                 <span className="text-[11px] font-bold text-white">Kartu Tabungan Cek-in</span>
-                                <span className="inline-flex items-center space-x-0.5 px-1.5 py-0.2 rounded-full bg-orange-500/20 text-orange-400 text-[9px] font-bold">
+                                <span className="inline-flex items-center space-x-0.5 px-1.5 py-0.2 rounded-full bg-orange-500/20 text-orange-400 text-[9px] font-bold transition-all">
                                   <Flame className="w-2.5 h-2.5 fill-orange-400" />
-                                  <span>35 Mg Streak</span>
+                                  <span>{checkedInWeek36 ? '36' : '35'} Mg Streak</span>
                                 </span>
                               </div>
                             </div>
@@ -816,12 +888,16 @@ export const CustomerAppSimulator: React.FC = () => {
                             const isVerified = isPast || (isCurrent && checkedInWeek36);
 
                             return (
-                              <div
+                              <button
                                 key={w}
-                                className={`p-1.5 rounded-xl border text-center flex flex-col justify-between ${
+                                type="button"
+                                onClick={w === 36 ? handleToggleCheckinWeek36 : undefined}
+                                className={`p-1.5 rounded-xl border text-center flex flex-col justify-between transition-all ${
+                                  w === 36 ? 'cursor-pointer hover:scale-105 active:scale-95' : ''
+                                } ${
                                   isVerified
                                     ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
-                                    : 'bg-slate-900 border-amber-400/50 text-amber-300 ring-1 ring-amber-400/30'
+                                    : 'bg-slate-900 border-amber-400/60 text-amber-300 ring-1 ring-amber-400/40 shadow-sm shadow-amber-400/20'
                                 }`}
                               >
                                 <div className="text-[9px] font-bold">Mg-{w}</div>
@@ -835,7 +911,7 @@ export const CustomerAppSimulator: React.FC = () => {
                                 <span className="text-[8px] font-bold">
                                   {isVerified ? 'Lunas' : 'Bayar'}
                                 </span>
-                              </div>
+                              </button>
                             );
                           })}
                         </div>
@@ -846,7 +922,12 @@ export const CustomerAppSimulator: React.FC = () => {
                         {/* Circular Progress & Payout Projections */}
                         <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-white/10 backdrop-blur-xl flex items-center justify-between gap-3">
                           <div className="shrink-0">
-                            <CircularProgress currentWeek={35} totalWeeks={50} size={110} strokeWidth={10} />
+                            <CircularProgress
+                              currentWeek={checkedInWeek36 ? 36 : 35}
+                              totalWeeks={50}
+                              size={110}
+                              strokeWidth={10}
+                            />
                           </div>
 
                           <div className="flex-1 space-y-1 text-right">
@@ -854,13 +935,43 @@ export const CustomerAppSimulator: React.FC = () => {
                               Proyeksi Pembagian H-1 Idul Fitri
                             </div>
                             <div className="text-xl font-black font-mono text-amber-400">
-                              Rp 3.500.000
+                              <SlidingNumber
+                                value={checkedInWeek36 ? 3600000 : 3500000}
+                                prefix="Rp "
+                              />
                             </div>
                             <div className="text-[10px] text-emerald-300 font-medium">
-                              Total 35 Minggu Terverifikasi
+                              Total {checkedInWeek36 ? '36' : '35'} Minggu Terverifikasi
                             </div>
                             <div className="text-[9px] text-slate-400">
-                              Biaya Admin: Rp 0 • Paket: Sembako Daging
+                              Biaya Admin: Rp 0 • Paket:{' '}
+                              {selectedDashboardPackage === 'sembako'
+                                ? 'Sembako + Daging 2kg'
+                                : selectedDashboardPackage === 'daging'
+                                ? 'Daging Sapi 5kg Super'
+                                : 'Tunai 100% Penuh'}
+                            </div>
+
+                            {/* Interactive Live Mini Package Switcher inside phone */}
+                            <div className="pt-1.5 flex items-center justify-end space-x-1">
+                              {[
+                                { id: 'sembako' as const, label: '🥩 Sembako' },
+                                { id: 'daging' as const, label: '🍖 Daging' },
+                                { id: 'uang' as const, label: '💰 Tunai' },
+                              ].map((pkg) => (
+                                <button
+                                  key={pkg.id}
+                                  type="button"
+                                  onClick={() => setSelectedDashboardPackage(pkg.id)}
+                                  className={`px-1.5 py-0.5 rounded text-[8px] font-bold transition-all cursor-pointer ${
+                                    selectedDashboardPackage === pkg.id
+                                      ? 'bg-amber-400 text-slate-950 shadow-sm scale-105'
+                                      : 'bg-slate-800 text-slate-400 hover:text-white'
+                                  }`}
+                                >
+                                  {pkg.label}
+                                </button>
+                              ))}
                             </div>
                           </div>
                         </div>
