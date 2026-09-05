@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Sparkles, ArrowRight, ShieldCheck, Calendar, Gift, Coins, CheckCircle2 } from 'lucide-react';
-import { ThreeHeroCanvas } from './ThreeHeroCanvas';
+import { CustomerAppSimulator } from './CustomerAppSimulator';
 
 export const HeroSection: React.FC = () => {
   // Live Countdown to Next Eid Al-Fitr (Calculated approx 50 weeks)
@@ -51,7 +51,7 @@ export const HeroSection: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="lg:col-span-7 text-center lg:text-left space-y-6"
+            className="lg:col-span-6 text-center lg:text-left space-y-6"
           >
             {/* Pill Badge */}
             <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-semibold backdrop-blur-md shadow-lg shadow-emerald-950/40">
@@ -103,11 +103,11 @@ export const HeroSection: React.FC = () => {
               </button>
 
               <a
-                href="#timeline"
+                href="#panduan-nasabah"
                 className="w-full sm:w-auto px-6 py-4 rounded-full text-sm font-semibold text-slate-200 hover:text-white bg-slate-900/80 border border-white/10 hover:bg-slate-800 transition-all text-center flex items-center justify-center"
               >
                 <Calendar className="w-4 h-4 mr-2 text-emerald-400" />
-                Pelajari 50 Minggu
+                Pelajari Alur Nasabah
               </a>
             </div>
 
@@ -131,23 +131,14 @@ export const HeroSection: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Right Column: 3D Interactive Canvas */}
+          {/* Right Column: Interactive Customer App Simulator */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
-            className="lg:col-span-5 relative"
+            transition={{ duration: 0.8, ease: 'easeOut', delay: 0.15 }}
+            className="lg:col-span-6 relative w-full"
           >
-            <div className="relative rounded-3xl overflow-hidden glass-panel-glow border border-emerald-500/20 p-2 sm:p-4">
-              <div className="absolute top-4 left-4 z-20 px-3.5 py-1 rounded-full bg-slate-950/85 border border-amber-400/30 text-[11px] font-medium text-amber-300 flex items-center space-x-1.5 backdrop-blur-md shadow-lg shadow-black/50">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                <span>3D Carousel 360° Celengan, Dompet & Sembako</span>
-              </div>
-              <div className="absolute bottom-4 right-4 z-20 px-3 py-1 rounded-full bg-slate-950/85 border border-emerald-500/40 text-[10px] font-mono text-emerald-300 backdrop-blur-md shadow-lg shadow-black/50">
-                👆 Klik untuk Animasi Uang & Sembako Keluar!
-              </div>
-              <ThreeHeroCanvas />
-            </div>
+            <CustomerAppSimulator />
           </motion.div>
         </div>
       </div>

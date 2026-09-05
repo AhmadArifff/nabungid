@@ -1,5 +1,6 @@
 import { Navbar } from '../components/landing/Navbar';
 import { HeroSection } from '../components/landing/HeroSection';
+import { CustomerJourneySection } from '../components/landing/CustomerJourneySection';
 import { InteractiveCalculator } from '../components/landing/InteractiveCalculator';
 import { ParcelBuilderSection } from '../components/landing/ParcelBuilderSection';
 import { TimelineSection } from '../components/landing/TimelineSection';
@@ -12,6 +13,7 @@ export default function HomePage() {
     <main className="flex-1 flex flex-col">
       <Navbar />
       <HeroSection />
+      <CustomerJourneySection />
       <InteractiveCalculator />
       <ParcelBuilderSection />
       <TimelineSection />

@@ -18,6 +18,7 @@ export const Navbar: React.FC = () => {
   }, []);
 
   const navLinks = [
+    { name: 'Panduan Alur', href: '#panduan-nasabah' },
     { name: 'Kalkulator', href: '#kalkulator' },
     { name: 'Rakit Parcel', href: '#rakit-parcel' },
     { name: 'Timeline 50 Minggu', href: '#timeline' },
