@@ -365,6 +365,55 @@ export const AdminAttendanceMatrix: React.FC<AdminAttendanceMatrixProps> = () =>
                   })}
                 </tr>
               ))}
+
+              {/* Empty or Loading State Row */}
+              {filteredMembers.length === 0 && (
+                <tr>
+                  <td colSpan={52} className="py-16 text-center text-slate-400">
+                    {isLoadingMatrix ? (
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        <RefreshCw className="w-8 h-8 animate-spin text-amber-400" />
+                        <span className="text-sm font-semibold text-white">Memuat Data Buku Tabungan & Matriks Absensi...</span>
+                        <span className="text-xs text-slate-500">Menghubungkan ke database PostgreSQL Supabase...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center space-y-3 max-w-md mx-auto py-2">
+                        <div className="w-14 h-14 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400">
+                          <AlertTriangle className="w-7 h-7" />
+                        </div>
+                        <h4 className="text-base font-bold text-white">Tidak Ada Data Nasabah Ditampilkan</h4>
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                          {searchTerm || statusFilter !== 'ALL'
+                            ? 'Tidak ada nasabah yang cocok dengan kata kunci atau filter yang Anda pilih.'
+                            : 'Data buku tabungan belum tersinkronisasi atau sedang dalam proses pembaruan.'}
+                        </p>
+                        <div className="flex items-center space-x-2 pt-2">
+                          {(searchTerm || statusFilter !== 'ALL') && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSearchTerm('');
+                                setStatusFilter('ALL');
+                              }}
+                              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-all cursor-pointer"
+                            >
+                              Reset Filter
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => fetchAttendanceMatrix()}
+                            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-lg shadow-amber-500/20 transition-all flex items-center space-x-1.5 cursor-pointer"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            <span>Segarkan Buku Tabungan</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

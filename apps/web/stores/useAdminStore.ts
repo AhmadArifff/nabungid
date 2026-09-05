@@ -265,8 +265,14 @@ export const useAdminStore = create<AdminState>()(
             set({ attendanceMembers: res.data, isLoadingMatrix: false });
             return;
           }
-        } catch {}
-        set({ isLoadingMatrix: false, attendanceMembers: [] });
+        } catch (error) {
+          console.error("Failed to fetch attendance matrix:", error);
+        }
+        // Preserve existing cached members on error instead of blanking out the screen
+        set((state) => ({
+          isLoadingMatrix: false,
+          attendanceMembers: state.attendanceMembers.length > 0 ? state.attendanceMembers : [],
+        }));
       },
 
       toggleCheckin: async (memberId, weekNumber, targetStatus) => {

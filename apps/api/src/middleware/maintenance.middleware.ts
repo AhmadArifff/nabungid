@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 import { SystemService } from '../services/system.service';
 import { prisma } from '../config/prisma.config';
+import { env } from '../config/env.config';
+import { JwtPayload } from './auth.middleware';
 
 export const checkMaintenanceMode = async (
   req: Request,
@@ -24,18 +27,46 @@ export const checkMaintenanceMode = async (
       url.startsWith('/health') ||
       url.startsWith('/api/health') ||
       url.startsWith('/api/v1/health') ||
-      url.startsWith('/api/v1/system/status')
+      url.startsWith('/v1/health') ||
+      url.startsWith('/api/v1/system/status') ||
+      url.startsWith('/v1/system/status') ||
+      url.startsWith('/system/status')
     ) {
       return next();
     }
 
-    // 2. Always allow all Admin routes (/api/v1/admin/*)
-    if (url.startsWith('/api/v1/admin')) {
+    // 2. Token-based Admin Immunity: If request has valid ADMIN JWT token, bypass maintenance completely across ALL endpoints
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
+        if (decoded && decoded.role === 'ADMIN') {
+          req.user = decoded;
+          return next();
+        }
+      } catch {
+        // Token invalid or expired, proceed to standard checks
+      }
+    }
+
+    // 3. Path-based Admin routes immunity (supports /api/v1/admin, /v1/admin, /admin)
+    if (
+      url.startsWith('/api/v1/admin') ||
+      url.startsWith('/v1/admin') ||
+      url.startsWith('/admin')
+    ) {
       return next();
     }
 
-    // 3. Allow Admin login even when maintenance is active
-    if (url === '/api/v1/auth/login' && req.method === 'POST') {
+    // 4. Allow Admin login even when maintenance is active
+    const isLoginEndpoint =
+      url.includes('/auth/login') ||
+      url === '/api/v1/auth/login' ||
+      url === '/v1/auth/login' ||
+      url === '/auth/login';
+
+    if (isLoginEndpoint && req.method === 'POST') {
       const identifier = (req.body?.identifier || req.body?.phoneNumber || req.body?.email || '').trim();
       if (identifier) {
         const user = await prisma.user.findFirst({
@@ -56,7 +87,7 @@ export const checkMaintenanceMode = async (
       }
     }
 
-    // 4. Block all other requests for Nasabah / Public
+    // 5. Block all other requests for Nasabah / Public
     res.status(503).json({
       success: false,
       maintenance: true,

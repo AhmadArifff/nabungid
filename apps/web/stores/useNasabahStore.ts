@@ -51,8 +51,11 @@ export const useNasabahStore = create<NasabahState>()(
               ledgers: res.data.ledgers || [],
               withdrawals: res.data.withdrawals || [],
             });
-          } else {
-            // Jika tidak ada data (belum enroll, dsb), kosongkan state
+          } else if ((res as any)?.maintenance) {
+            // Ketika server sedang dalam mode pemeliharaan (503), pertahankan cache data lokal agar tidak terhapus
+            return;
+          } else if (res.message?.toLowerCase().includes('tidak ditemukan') || res.message?.toLowerCase().includes('belum')) {
+            // Hanya kosongkan jika user benar-benar belum mendaftar program tabungan
             set({
               savingId: null,
               program: null,
