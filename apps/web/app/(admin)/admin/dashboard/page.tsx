@@ -12,8 +12,10 @@ import {
   TrendingUp,
   Database,
   RefreshCw,
+  Clock,
 } from 'lucide-react';
 import { useAdminStore } from '../../../../stores/useAdminStore';
+import { useAutoSync } from '../../../../hooks/useAutoSync';
 
 export default function AdminDashboardPage() {
   const {
@@ -22,25 +24,39 @@ export default function AdminDashboardPage() {
     pendingWithdrawals,
     items,
     bundles,
+    metrics,
     fetchAttendanceMatrix,
+    fetchDashboardMetrics,
   } = useAdminStore();
 
   useEffect(() => {
+    fetchDashboardMetrics();
     fetchAttendanceMatrix();
-  }, [fetchAttendanceMatrix]);
+  }, [fetchAttendanceMatrix, fetchDashboardMetrics]);
 
-  const totalKasTerkumpul = attendanceMembers.reduce((sum, m) => sum + (m.totalSaved || 0), 0);
-  const totalNasabah = attendanceMembers.length > 0 ? attendanceMembers.length : 28;
-  const kasDisplay = totalKasTerkumpul > 0 ? totalKasTerkumpul : 45000000;
+  // Real-time background sync every 1 minute
+  useAutoSync(() => {
+    fetchDashboardMetrics();
+    fetchAttendanceMatrix();
+  }, 60000);
+
+  const totalNasabah = metrics ? (metrics.totalNasabah ?? 0) : 0;
+  const kasDisplay = metrics ? (metrics.totalKasTerkumpul ?? 0) : 0;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold mb-1">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Live Data Sync Database</span>
+          <div className="flex items-center space-x-2 mb-1">
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Live Data Sync Database</span>
+            </div>
+            <div className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Auto-Sync 1 Menit</span>
+            </div>
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">Dashboard Ringkasan Admin</h1>
           <p className="text-xs text-slate-400 mt-0.5">
@@ -50,10 +66,11 @@ export default function AdminDashboardPage() {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => {
+              fetchDashboardMetrics();
               fetchAttendanceMatrix();
             }}
             className="p-2.5 rounded-xl bg-slate-850 border border-white/10 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-            title="Refresh Data"
+            title="Refresh Data (Auto-sync tiap 1 menit)"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -78,7 +95,7 @@ export default function AdminDashboardPage() {
           </div>
           <div>
             <div className="text-2xl font-black font-mono text-emerald-400">
-              Rp {kasDisplay.toLocaleString('id-ID')}
+              Rp {(kasDisplay ?? 0).toLocaleString('id-ID')}
             </div>
             <div className="text-[10px] text-slate-400 mt-1 flex items-center space-x-1">
               <TrendingUp className="w-3 h-3 text-emerald-400" />
@@ -159,7 +176,7 @@ export default function AdminDashboardPage() {
                   <div>
                     <div className="text-xs font-bold text-white">{l.userName}</div>
                     <div className="text-[11px] text-slate-400">
-                      Minggu ke-{l.weekNumber} • <span className="text-amber-300 font-mono font-semibold">Rp {l.amount.toLocaleString('id-ID')}</span>
+                      Minggu ke-{l.weekNumber} • <span className="text-amber-300 font-mono font-semibold">Rp {(l.amount ?? 0).toLocaleString('id-ID')}</span>
                     </div>
                   </div>
                   <Link
@@ -201,9 +218,9 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Buku Absensi 50 Minggu:</span>
+            <span className="text-slate-400">Buku Tabungan 50 Minggu:</span>
             <Link href="/admin/absensi" className="text-amber-400 font-semibold hover:underline flex items-center space-x-1">
-              <span>Buka Matriks Absensi</span>
+              <span>Buka Buku Tabungan</span>
               <ArrowUpRight className="w-3.5 h-3.5 inline" />
             </Link>
           </div>

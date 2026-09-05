@@ -60,7 +60,7 @@ export default function PenarikanPage() {
           <div>
             <div className="text-[11px] text-slate-400 font-medium">Saldo Aman Anda:</div>
             <div className="text-lg font-black font-mono text-amber-400">
-              Rp {currentBalance.toLocaleString('id-ID')}
+              Rp {(currentBalance ?? 0).toLocaleString('id-ID')}
             </div>
             <div className="text-[10px] text-slate-400">Saldo tabungan terverifikasi</div>
           </div>
@@ -106,7 +106,7 @@ export default function PenarikanPage() {
                 <div key={w.id} className="p-4 sm:p-5 flex items-center justify-between gap-4">
                   <div>
                     <div className="text-sm font-bold text-white font-mono">
-                      Rp {w.amount.toLocaleString('id-ID')}
+                      Rp {(w.amount ?? 0).toLocaleString('id-ID')}
                     </div>
                     <div className="text-xs text-slate-400 mt-0.5">{w.reason}</div>
                     <div className="text-[10px] text-slate-500 font-mono mt-1">

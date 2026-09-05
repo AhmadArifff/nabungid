@@ -1,12 +1,13 @@
 import * as XLSX from 'xlsx';
 import { AttendanceMatrixMember } from '../stores/useAdminStore';
+import { formatWeekDueDate } from './date-format';
 
 /**
- * Export 50-week Attendance Matrix to Native Excel (.xlsx) file.
+ * Export 50-week Savings Ledger (Buku Tabungan) to Native Excel (.xlsx) file.
  */
 export function exportAttendanceMatrixToExcel(
   members: AttendanceMatrixMember[],
-  fileName = 'Matriks_Absensi_NabungID_1447H.xlsx'
+  fileName = 'Buku_Tabungan_NabungID_1447H.xlsx'
 ) {
   // Build spreadsheet rows
   const rows = members.map((m, index) => {
@@ -23,7 +24,7 @@ export function exportAttendanceMatrixToExcel(
       'Streak Disiplin': m.streakCount,
     };
 
-    // Add 50 week columns
+    // Add 50 week columns with due dates
     m.ledgers.forEach((l) => {
       let statusStr = 'Belum Bayar';
       if (l.status === 'VERIFIED') {
@@ -31,7 +32,8 @@ export function exportAttendanceMatrixToExcel(
       } else if (l.status === 'WAITING_VERIFICATION') {
         statusStr = 'MENUNGGU VERIFIKASI';
       }
-      row[`M${l.weekNumber}`] = statusStr;
+      const colHeader = `M${l.weekNumber} (${formatWeekDueDate(l.weekNumber, l.dueDate)})`;
+      row[colHeader] = statusStr;
     });
 
     return row;
@@ -39,7 +41,7 @@ export function exportAttendanceMatrixToExcel(
 
   const worksheet = XLSX.utils.json_to_sheet(rows);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Rekap Absensi 50 Minggu');
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Rekap Tabungan 50 Minggu');
 
   // Trigger browser download
   XLSX.writeFile(workbook, fileName);

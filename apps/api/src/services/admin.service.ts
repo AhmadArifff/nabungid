@@ -274,6 +274,7 @@ export class AdminService {
         ledgers: s.ledgers.map((l) => ({
           id: l.id,
           weekNumber: l.weekNumber,
+          dueDate: l.dueDate.toISOString(),
           status: l.status,
           amount: Number(l.amount),
           paidDate: l.paidDate ? l.paidDate.toISOString() : undefined,

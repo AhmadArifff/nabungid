@@ -12,47 +12,14 @@ import {
 } from '@nabungid/shared';
 import { ApiClient } from '../lib/api-client';
 
-const generateInitialLedgers = (weeklyAmount: number): WeeklyLedgerItem[] => {
-  const startDate = new Date('2026-04-05T00:00:00.000Z');
-  return Array.from({ length: 50 }, (_, i) => {
-    const weekNumber = i + 1;
-    const dueDate = new Date(startDate);
-    dueDate.setDate(dueDate.getDate() + i * 7);
-
-    let status: WeeklyLedgerItem['status'] = 'PENDING_PAYMENT';
-    let paidDate: string | undefined = undefined;
-    let paymentMethod: WeeklyLedgerItem['paymentMethod'] = 'BANK_TRANSFER';
-
-    // Demo pre-filled weeks: Weeks 1-18 verified, Week 19 waiting
-    if (weekNumber <= 18) {
-      status = 'VERIFIED';
-      paidDate = dueDate.toISOString();
-    } else if (weekNumber === 19) {
-      status = 'WAITING_VERIFICATION';
-      paidDate = new Date().toISOString();
-    }
-
-    return {
-      id: `ldg-${weekNumber}`,
-      memberSavingId: 'sav-001',
-      weekNumber,
-      dueDate: dueDate.toISOString(),
-      amount: weeklyAmount,
-      status,
-      paidDate,
-      paymentMethod,
-    };
-  });
-};
-
 interface NasabahState {
-  program: SavingsProgram;
+  program: SavingsProgram | null;
   bundle: PackageBundle | null;
   ledgers: WeeklyLedgerItem[];
   withdrawals: EmergencyWithdrawalRequest[];
   emergencyQuotaUsed: boolean;
   totalEmergencyWithdrawn: number;
-  savingId: string;
+  savingId: string | null;
 
   // Actions
   fetchMySavings: () => Promise<void>;
@@ -65,28 +32,10 @@ interface NasabahState {
 export const useNasabahStore = create<NasabahState>()(
   persist(
     (set, get) => ({
-      savingId: 'sav-001',
-      program: {
-        id: 'prog-100k',
-        cycleId: 'cyc-1447',
-        name: 'Tabungan Berkah 100k',
-        weeklyNominal: 100000,
-        targetWeeks: 50,
-        adminFee: 25000,
-        isActive: true,
-      },
-
-      bundle: {
-        id: 'bun-sembako-1',
-        name: 'Paket Sembako Berkah Lebaran',
-        slug: 'paket-sembako-berkah',
-        description: 'Daging sapi segar 1kg, Telur 1 tray, Minyak goreng 2L, Beras premium 5kg.',
-        bundlePrice: 318000,
-        imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500',
-        isActive: true,
-      },
-
-      ledgers: generateInitialLedgers(100000),
+      savingId: null,
+      program: null,
+      bundle: null,
+      ledgers: [],
       withdrawals: [],
       emergencyQuotaUsed: false,
       totalEmergencyWithdrawn: 0,
@@ -96,14 +45,25 @@ export const useNasabahStore = create<NasabahState>()(
           const res = await ApiClient.get('/nasabah/savings');
           if (res.success && res.data) {
             set({
-              savingId: res.data.id || 'sav-001',
-              program: res.data.program || get().program,
-              bundle: res.data.bundle || get().bundle,
-              ledgers: res.data.ledgers && res.data.ledgers.length > 0 ? res.data.ledgers : get().ledgers,
-              withdrawals: res.data.withdrawals || get().withdrawals,
+              savingId: res.data.id || null,
+              program: res.data.program || null,
+              bundle: res.data.bundle || null,
+              ledgers: res.data.ledgers || [],
+              withdrawals: res.data.withdrawals || [],
+            });
+          } else {
+            // Jika tidak ada data (belum enroll, dsb), kosongkan state
+            set({
+              savingId: null,
+              program: null,
+              bundle: null,
+              ledgers: [],
+              withdrawals: [],
             });
           }
-        } catch {}
+        } catch (error) {
+          console.error("Gagal mengambil data tabungan:", error);
+        }
       },
 
       selectBundle: async (bundle) => {
@@ -147,6 +107,9 @@ export const useNasabahStore = create<NasabahState>()(
 
       requestEmergencyWithdrawal: async (amount, reason) => {
         const state = get();
+        if (!state.program || !state.savingId) {
+          return { success: false, message: 'Data program tabungan tidak ditemukan.' };
+        }
         const currentBalance = state.ledgers
           .filter((l) => l.status === 'VERIFIED')
           .reduce((sum, l) => sum + l.amount, 0);
@@ -166,7 +129,7 @@ export const useNasabahStore = create<NasabahState>()(
         const newWithdrawal: EmergencyWithdrawalRequest = {
           id: `emg-${Date.now()}`,
           memberSavingId: state.savingId,
-          userId: 'usr-nasabah-01',
+          userId: 'usr-nasabah-01', // Ideally should be from AuthStore
           amount,
           reason,
           status: 'PENDING_APPROVAL',
@@ -184,6 +147,15 @@ export const useNasabahStore = create<NasabahState>()(
 
       getPayoutSummary: () => {
         const state = get();
+        if (!state.program) {
+          return calculateEndCyclePayout({
+            totalSavedAmount: 0,
+            adminFeeAmount: 0,
+            packageGoodsAmount: 0,
+            emergencyDeductionAmount: 0,
+          });
+        }
+        
         const totalSaved = state.ledgers
           .filter((l) => l.status === 'VERIFIED')
           .reduce((sum, l) => sum + l.amount, 0);

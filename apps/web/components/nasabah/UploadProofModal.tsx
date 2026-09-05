@@ -67,7 +67,7 @@ export const UploadProofModal: React.FC<UploadProofModalProps> = ({
           <p className="text-xs text-slate-400 mt-1">
             Nominal setoran:{' '}
             <strong className="text-amber-300 font-mono text-sm">
-              Rp {ledger.amount.toLocaleString('id-ID')}
+              Rp {(ledger?.amount ?? 0).toLocaleString('id-ID')}
             </strong>
           </p>
         </div>

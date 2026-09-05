@@ -11,7 +11,7 @@ import {
   Database,
   Gift,
   ArrowLeft,
-  Users,
+  BookOpen,
   Wrench,
 } from 'lucide-react';
 import { useAdminStore } from '../../stores/useAdminStore';
@@ -19,7 +19,7 @@ import { useSystemStore } from '../../stores/useSystemStore';
 
 const MENU_ITEMS = [
   { href: '/admin/dashboard', label: 'Dashboard Ringkasan', icon: LayoutDashboard },
-  { href: '/admin/absensi', label: 'Buku Absensi (50 Minggu)', icon: Users },
+  { href: '/admin/absensi', label: 'Buku Tabungan (50 Minggu)', icon: BookOpen },
   { href: '/admin/verifikasi', label: 'Verifikasi Setoran', icon: CheckSquare, badgeKey: 'pendingLedgers' },
   { href: '/admin/penarikan', label: 'Persetujuan Darurat', icon: ShieldAlert, badgeKey: 'pendingWithdrawals' },
   { href: '/admin/master-data', label: 'Master Data (Zero Hardcode)', icon: Database },

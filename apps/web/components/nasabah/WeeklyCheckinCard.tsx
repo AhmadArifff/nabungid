@@ -23,6 +23,7 @@ import { WeeklyLedgerItem } from '@nabungid/shared';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useNasabahStore } from '../../stores/useNasabahStore';
 import { DigitalReceiptModal } from './DigitalReceiptModal';
+import { formatWeekBadge, formatWeekDueDate } from '../../lib/date-format';
 
 interface WeeklyCheckinCardProps {
   ledgers: WeeklyLedgerItem[];
@@ -35,51 +36,45 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
 }) => {
   const { user } = useAuthStore();
   const { program } = useNasabahStore();
-  const [viewMode, setViewMode] = useState<'STAMP_CARD' | 'TABLE_VIEW'>('STAMP_CARD');
-  const [filterMode, setFilterMode] = useState<'ALL' | 'VERIFIED' | 'WAITING' | 'PENDING'>('ALL');
-  const [printSuccessToast, setPrintSuccessToast] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<WeeklyLedgerItem | null>(null);
+  const [filterMode, setFilterMode] = useState<'ALL' | 'UNPAID' | 'VERIFIED'>('ALL');
+  const [viewMode, setViewMode] = useState<'STAMP_CARD' | 'TABLE_VIEW'>('STAMP_CARD');
 
-  // Statistics
+  // Calculations
   const verifiedCount = ledgers.filter((l) => l.status === 'VERIFIED').length;
   const waitingCount = ledgers.filter((l) => l.status === 'WAITING_VERIFICATION').length;
   const pendingCount = ledgers.filter((l) => l.status === 'PENDING_PAYMENT' || l.status === 'REJECTED').length;
+  const targetWeeks = program?.targetWeeks || 50;
+  const progressPercent = Math.min(100, Math.round((verifiedCount / targetWeeks) * 100));
+
+  // Find next payable week
   const nextPayableWeek = ledgers.find((l) => l.status === 'PENDING_PAYMENT' || l.status === 'REJECTED');
-  const currentWeekNumber = verifiedCount + (waitingCount > 0 ? 1 : 0);
 
   // Filtered Ledgers
   const displayedLedgers = ledgers.filter((l) => {
+    if (filterMode === 'UNPAID') return l.status === 'PENDING_PAYMENT' || l.status === 'REJECTED';
     if (filterMode === 'VERIFIED') return l.status === 'VERIFIED';
-    if (filterMode === 'WAITING') return l.status === 'WAITING_VERIFICATION';
-    if (filterMode === 'PENDING') return l.status === 'PENDING_PAYMENT' || l.status === 'REJECTED';
     return true;
   });
 
   const handlePrint = () => {
-    setPrintSuccessToast(true);
-    setTimeout(() => {
-      window.print();
-      setPrintSuccessToast(false);
-    }, 400);
+    window.print();
   };
 
   return (
     <div className="space-y-6">
-      {/* 🌟 Top Physical Member Stamp Pass Card */}
-      <div className="relative rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/80 border-2 border-amber-400/30 p-6 sm:p-8 shadow-2xl overflow-hidden backdrop-blur-2xl">
-        {/* Decorative Golden Corner Accents & Shimmer */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-amber-400 to-emerald-500" />
+      {/* 🌟 Member Identity Strip & Live Verification Badge */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-slate-900/90 via-slate-900/80 to-slate-950 border border-emerald-500/20 backdrop-blur-xl relative overflow-hidden shadow-xl">
+        {/* Background Decorative Emblem */}
+        <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Member Pass Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/10 relative z-10">
-          <div className="flex items-start sm:items-center space-x-4">
-            {/* Member Gold Stamp Avatar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative z-10">
+          <div className="flex items-center space-x-4">
+            {/* Nasabah Avatar with Verified Ring */}
             <div className="relative">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-400 to-emerald-500 p-0.5 shadow-lg shadow-amber-950/50">
-                <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center font-bold text-xl text-amber-300 font-heading">
-                  {user?.name ? user.name.charAt(0).toUpperCase() : 'N'}
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-600 p-0.5 shadow-lg shadow-amber-500/20">
+                <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-amber-400 font-bold text-lg">
+                  {user?.name ? user.name.slice(0, 2).toUpperCase() : 'NB'}
                 </div>
               </div>
               <div className="absolute -bottom-1.5 -right-1.5 p-1 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-bold shadow">
@@ -90,7 +85,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
             <div>
               <div className="flex items-center space-x-2">
                 <span className="px-2.5 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/40 text-amber-300 font-bold text-[10px] uppercase tracking-wider">
-                  KARTU ABSENSI RESMI
+                  KARTU TABUNGAN RESMI
                 </span>
                 <span className="text-[11px] font-mono text-slate-400">#NBD-1447-0{verifiedCount}</span>
               </div>
@@ -100,7 +95,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
               <div className="text-xs text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
                 <span>WhatsApp: <strong className="text-white font-mono">{user?.phoneNumber || '081234567890'}</strong></span>
                 <span>•</span>
-                <span>Program: <strong className="text-amber-300">Rp {program.weeklyNominal.toLocaleString('id-ID')} / Minggu</strong></span>
+                <span>Program: <strong className="text-amber-300">Rp {program?.weeklyNominal?.toLocaleString('id-ID') || 0} / Minggu</strong></span>
               </div>
             </div>
           </div>
@@ -112,7 +107,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
               className="py-2 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-white/10 transition-colors flex items-center space-x-1.5 print:hidden"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Cetak Kartu Absen</span>
+              <span>Cetak Kartu Tabungan</span>
             </button>
             {nextPayableWeek && (
               <button
@@ -204,7 +199,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            📇 Kartu Stamp Absensi
+            📇 Kartu Stamp Tabungan
           </button>
           <button
             onClick={() => setViewMode('TABLE_VIEW')}
@@ -252,15 +247,15 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
                 {/* Stamp Card Header */}
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-white flex items-center space-x-1">
-                    <span>Minggu {item.weekNumber}</span>
+                    <span>Mg-{item.weekNumber}</span>
                   </span>
-                  <span className="text-[10px] font-mono text-slate-400">{formattedDate}</span>
+                  <span className="text-[10px] font-mono text-slate-400">({formattedDate})</span>
                 </div>
 
                 {/* Center Nominal */}
                 <div className="my-1">
                   <div className="text-base font-black font-mono text-white">
-                    Rp {item.amount.toLocaleString('id-ID')}
+                    Rp {(item.amount ?? 0).toLocaleString('id-ID')}
                   </div>
                 </div>
 
@@ -317,7 +312,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
                 <th className="py-3.5 px-4">Jatuh Tempo</th>
                 <th className="py-3.5 px-4">Nominal Iuran</th>
                 <th className="py-3.5 px-4">Metode & Bukti</th>
-                <th className="py-3.5 px-4">Status Absensi</th>
+                <th className="py-3.5 px-4">Status Setoran</th>
                 <th className="py-3.5 px-4 text-right">Aksi</th>
               </tr>
             </thead>
@@ -325,7 +320,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
               {displayedLedgers.map((l) => (
                 <tr key={l.id} className="hover:bg-white/[0.02] transition-colors">
                   <td className="py-3.5 px-4 font-bold text-white font-sans">
-                    Minggu ke-{l.weekNumber}
+                    {formatWeekBadge(l.weekNumber, l.dueDate)}
                   </td>
                   <td className="py-3.5 px-4 text-slate-400">
                     {new Date(l.dueDate).toLocaleDateString('id-ID', {
@@ -335,7 +330,7 @@ export const WeeklyCheckinCard: React.FC<WeeklyCheckinCardProps> = ({
                     })}
                   </td>
                   <td className="py-3.5 px-4 text-amber-300 font-bold">
-                    Rp {l.amount.toLocaleString('id-ID')}
+                    Rp {(l.amount ?? 0).toLocaleString('id-ID')}
                   </td>
                   <td className="py-3.5 px-4 font-sans text-slate-400">
                     {l.proofImageUrl ? (
