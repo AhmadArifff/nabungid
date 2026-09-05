@@ -23,7 +23,7 @@ export const WhatsAppReminderModal: React.FC<WhatsAppReminderModalProps> = ({
     ? '62' + member.phone.slice(1)
     : member.phone.replace(/[^0-9]/g, '');
 
-  const defaultMessage = `Assalamu'alaikum Ibu/Bapak ${member.name}, pengingat setoran tabungan Idul Fitri 1447H untuk *Minggu ke-${weekNumber} (Rp ${member.weeklyNominal.toLocaleString('id-ID')})* telah dibuka. Yuk cek-in kartu tabungan Anda di: https://nabungid.com/tabunganku. Terima kasih & semoga berkah! ✨`;
+  const defaultMessage = `Assalamu'alaikum Ibu/Bapak ${member.name}, pengingat setoran tabungan Idul Fitri 1447H untuk *Minggu ke-${weekNumber} (Rp ${(member.weeklyNominal ?? 0).toLocaleString('id-ID')})* telah dibuka. Yuk cek-in kartu tabungan Anda di: https://nabungid.com/tabunganku. Terima kasih & semoga berkah! ✨`;
 
   const [message, setMessage] = useState(defaultMessage);
   const [copied, setCopied] = useState(false);
@@ -76,7 +76,7 @@ export const WhatsAppReminderModal: React.FC<WhatsAppReminderModalProps> = ({
           <div className="text-right">
             <div className="text-[10px] text-slate-500">Nominal Setoran:</div>
             <div className="text-sm font-bold font-mono text-amber-300">
-              Rp {member.weeklyNominal.toLocaleString('id-ID')}
+              Rp {(member.weeklyNominal ?? 0).toLocaleString('id-ID')}
             </div>
           </div>
         </div>

@@ -4,13 +4,22 @@ import React from 'react';
 import { useAdminStore } from '../../../../stores/useAdminStore';
 import { useToastStore } from '../../../../stores/useToastStore';
 import { ShieldAlert, Check, X, Phone, AlertTriangle } from 'lucide-react';
+import { useAutoSync } from '../../../../hooks/useAutoSync';
 
 export default function AdminPenarikanPage() {
-  const { pendingWithdrawals, approveWithdrawal } = useAdminStore();
+  const { pendingWithdrawals, approveWithdrawal, fetchPendingWithdrawals } = useAdminStore();
   const { success, warning } = useToastStore();
 
-  const handleDecision = (id: string, approve: boolean) => {
-    approveWithdrawal(id, approve);
+  React.useEffect(() => {
+    fetchPendingWithdrawals();
+  }, [fetchPendingWithdrawals]);
+
+  // Real-time background sync every 1 minute
+  useAutoSync(fetchPendingWithdrawals, 60000);
+
+  const handleDecision = async (id: string, approve: boolean) => {
+    await approveWithdrawal(id, approve);
+    fetchPendingWithdrawals();
     if (approve) {
       success('Penarikan darurat nasabah disetujui & dana dicairkan.');
     } else {
@@ -35,7 +44,13 @@ export default function AdminPenarikanPage() {
       {/* Pending List */}
       <div className="rounded-3xl bg-slate-900/80 border border-white/10 overflow-hidden">
         <div className="p-5 border-b border-white/10 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white">Daftar Pengajuan Penarikan Darurat</h3>
+          <div className="flex items-center space-x-2.5">
+            <h3 className="text-sm font-bold text-white">Daftar Pengajuan Penarikan Darurat</h3>
+            <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Auto-Sync 1 Menit</span>
+            </div>
+          </div>
           <span className="text-xs text-rose-400 font-mono font-semibold">
             {pendingWithdrawals.length} Permohonan
           </span>
@@ -53,7 +68,7 @@ export default function AdminPenarikanPage() {
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-bold text-white">{w.userName}</span>
                     <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 text-[10px] font-mono">
-                      Saldo: Rp {w.currentBalance.toLocaleString('id-ID')}
+                      Saldo: Rp {(w.currentBalance ?? 0).toLocaleString('id-ID')}
                     </span>
                   </div>
 
@@ -65,7 +80,7 @@ export default function AdminPenarikanPage() {
                   <div className="text-xs text-slate-300 mt-2">
                     Nominal Diminta:{' '}
                     <strong className="text-amber-400 font-mono text-sm">
-                      Rp {w.amount.toLocaleString('id-ID')}
+                      Rp {(w.amount ?? 0).toLocaleString('id-ID')}
                     </strong>{' '}
                     (0% Fee)
                   </div>

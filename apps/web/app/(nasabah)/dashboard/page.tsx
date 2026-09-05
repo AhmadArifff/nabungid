@@ -21,10 +21,12 @@ import { CircularProgress } from '../../../components/nasabah/CircularProgress';
 import { UploadProofModal } from '../../../components/nasabah/UploadProofModal';
 import { EmergencyWithdrawalModal } from '../../../components/nasabah/EmergencyWithdrawalModal';
 import { WeeklyLedgerItem } from '@nabungid/shared';
+import { useAutoSync } from '../../../hooks/useAutoSync';
+import { formatWeekBadge, formatWeekDueDate } from '../../../lib/date-format';
 
 export default function NasabahDashboardPage() {
   const { user } = useAuthStore();
-  const { program, bundle, ledgers, withdrawals, payWeek, getPayoutSummary } = useNasabahStore();
+  const { program, bundle, ledgers, withdrawals, payWeek, getPayoutSummary, fetchMySavings } = useNasabahStore();
   const [selectedLedger, setSelectedLedger] = useState<WeeklyLedgerItem | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isEmergencyOpen, setIsEmergencyOpen] = useState(false);
@@ -39,6 +41,38 @@ export default function NasabahDashboardPage() {
     setSelectedLedger(ledger);
     setIsUploadOpen(true);
   };
+  const [isLoading, setIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetchMySavings().finally(() => {
+      setIsLoading(false);
+    });
+  }, [fetchMySavings]);
+
+  // Real-time background sync every 1 minute
+  useAutoSync(fetchMySavings, 60000);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!program) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4 text-center">
+        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center">
+          <ShieldAlert className="w-8 h-8 text-slate-400" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-white">Belum Terdaftar Program Tabungan</h2>
+          <p className="text-sm text-slate-400 mt-1 max-w-md">Anda belum terdaftar atau program tabungan sedang tidak aktif. Silakan hubungi Admin.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -58,7 +92,7 @@ export default function NasabahDashboardPage() {
               </span>
             </div>
             <p className="text-xs text-slate-300 mt-0.5">
-              Target pencairan H-1 Idul Fitri 1447H • Rp {program.weeklyNominal.toLocaleString('id-ID')} / minggu
+              Target pencairan H-1 Idul Fitri 1447H • Rp {(program?.weeklyNominal ?? 0).toLocaleString('id-ID')} / minggu
             </p>
           </div>
         </div>
@@ -69,7 +103,7 @@ export default function NasabahDashboardPage() {
               className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all flex items-center space-x-1.5"
             >
               <Coins className="w-4 h-4" />
-              <span>Cek-in Minggu Ke-{nextUnpaidLedger.weekNumber}</span>
+              <span>Cek-in {formatWeekBadge(nextUnpaidLedger.weekNumber, nextUnpaidLedger.dueDate)}</span>
             </button>
           )}
           <button
@@ -82,7 +116,7 @@ export default function NasabahDashboardPage() {
         </div>
       </div>
 
-      {/* 📇 Mini Member Stamp Card Strip (Preview Kartu Absensi) */}
+      {/* 📇 Mini Member Stamp Card Strip (Preview Kartu Tabungan) */}
       <div className="p-5 rounded-3xl bg-slate-900/80 border border-amber-400/30 backdrop-blur-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -92,15 +126,21 @@ export default function NasabahDashboardPage() {
               <Calendar className="w-4 h-4" />
             </span>
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                <span>Kartu Absensi Cek-in Setoran Mingguan</span>
-                <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">
-                  <Flame className="w-3 h-3 fill-orange-400" />
-                  <span>{verifiedWeeks} Mg Streak</span>
-                </span>
-              </h3>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                  <span>Kartu Tabungan Cek-in Setoran Mingguan</span>
+                  <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">
+                    <Flame className="w-3 h-3 fill-orange-400" />
+                    <span>{verifiedWeeks} Mg Streak</span>
+                  </span>
+                </h3>
+                <div className="hidden sm:flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Auto-Sync 1m</span>
+                </div>
+              </div>
               <p className="text-[11px] text-slate-400">
-                Stempel kehadiran setoran digital nasabah • Disiplin tanpa bolong
+                Stempel setoran digital nasabah • Disiplin tanpa bolong
               </p>
             </div>
           </div>
@@ -108,7 +148,7 @@ export default function NasabahDashboardPage() {
             href="/tabunganku"
             className="text-xs text-amber-400 font-semibold hover:underline flex items-center space-x-1 self-start sm:self-auto"
           >
-            <span>Buka Kartu Absen Lengkap (50 Minggu)</span>
+            <span>Buka Kartu Tabungan Lengkap (50 Minggu)</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -134,6 +174,7 @@ export default function NasabahDashboardPage() {
                 }`}
               >
                 <div className="text-[10px] font-bold text-slate-300">Mg-{item.weekNumber}</div>
+                <div className="text-[9px] text-slate-400 font-sans font-normal">({formatWeekDueDate(item.weekNumber, item.dueDate)})</div>
                 <div className="my-1.5 flex items-center justify-center">
                   {isVerified && (
                     <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-400">
@@ -210,7 +251,7 @@ export default function NasabahDashboardPage() {
             <div className="mb-6">
               <div className="text-xs text-slate-400">Estimasi Uang Tunai Bersih Diterima:</div>
               <div className="text-3xl sm:text-4xl font-black font-mono text-amber-400 tracking-tight mt-1">
-                Rp {payout.netPayoutAmount.toLocaleString('id-ID')}
+                Rp {(payout?.netPayoutAmount ?? 0).toLocaleString('id-ID')}
               </div>
             </div>
 
@@ -222,7 +263,7 @@ export default function NasabahDashboardPage() {
                   <span>Total Tabungan Terverifikasi ({verifiedWeeks} Minggu)</span>
                 </span>
                 <span className="font-mono font-bold text-white">
-                  + Rp {payout.totalSavedAmount.toLocaleString('id-ID')}
+                  + Rp {(payout?.totalSavedAmount ?? 0).toLocaleString('id-ID')}
                 </span>
               </div>
 
@@ -232,7 +273,7 @@ export default function NasabahDashboardPage() {
                   <span>Biaya Administrasi Program</span>
                 </span>
                 <span className="font-mono font-bold text-slate-400">
-                  - Rp {payout.adminFeeAmount.toLocaleString('id-ID')}
+                  - Rp {(payout?.adminFeeAmount ?? 0).toLocaleString('id-ID')}
                 </span>
               </div>
 
@@ -243,19 +284,19 @@ export default function NasabahDashboardPage() {
                     <span>Paket Barang: {bundle.name}</span>
                   </span>
                   <span className="font-mono font-bold text-amber-300">
-                    - Rp {bundle.bundlePrice.toLocaleString('id-ID')}
+                    - Rp {(bundle.bundlePrice ?? 0).toLocaleString('id-ID')}
                   </span>
                 </div>
               )}
 
-              {payout.emergencyDeductionAmount > 0 && (
+              {(payout?.emergencyDeductionAmount ?? 0) > 0 && (
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300">
                   <span className="flex items-center space-x-2">
                     <span className="w-2 h-2 rounded-full bg-rose-400" />
                     <span>Total Penarikan Darurat yang Telah Dicairkan</span>
                   </span>
                   <span className="font-mono font-bold">
-                    - Rp {payout.emergencyDeductionAmount.toLocaleString('id-ID')}
+                    - Rp {(payout?.emergencyDeductionAmount ?? 0).toLocaleString('id-ID')}
                   </span>
                 </div>
               )}
@@ -274,7 +315,7 @@ export default function NasabahDashboardPage() {
               href="/tabunganku"
               className="text-xs text-emerald-400 font-semibold hover:underline flex items-center space-x-1"
             >
-              <span>Buka Kartu Absen 50 Minggu</span>
+              <span>Buka Kartu Tabungan (50 Minggu)</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -303,7 +344,7 @@ export default function NasabahDashboardPage() {
           <div className="text-right sm:shrink-0 flex sm:flex-col items-center sm:items-end justify-between">
             <div className="text-xs text-slate-400">Total Harga Paket:</div>
             <div className="text-lg font-bold font-mono text-amber-300">
-              Rp {bundle.bundlePrice.toLocaleString('id-ID')}
+              Rp {(bundle.bundlePrice ?? 0).toLocaleString('id-ID')}
             </div>
           </div>
         </div>

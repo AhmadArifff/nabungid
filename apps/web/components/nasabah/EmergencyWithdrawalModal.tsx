@@ -86,7 +86,7 @@ export const EmergencyWithdrawalModal: React.FC<EmergencyWithdrawalModalProps> =
             <li>Maksimal penarikan: <strong className="text-white">Rp 500.000</strong> per periode tabungan.</li>
             <li>Batas frekuensi: <strong className="text-white">1 (satu) kali</strong> penarikan seumur periode.</li>
             <li>Potongan komisi: <strong className="text-emerald-400">0% (Tanpa Denda)</strong>.</li>
-            <li>Saldo terverifikasi Anda saat ini: <strong className="text-amber-300 font-mono">Rp {currentBalance.toLocaleString('id-ID')}</strong>.</li>
+            <li>Saldo terverifikasi Anda saat ini: <strong className="text-amber-300 font-mono">Rp {(currentBalance ?? 0).toLocaleString('id-ID')}</strong>.</li>
           </ul>
         </div>
 
@@ -105,7 +105,7 @@ export const EmergencyWithdrawalModal: React.FC<EmergencyWithdrawalModalProps> =
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-slate-300 font-medium">Nominal Penarikan (Rp):</span>
                 <span className="text-amber-400 font-mono font-bold">
-                  Rp {amount.toLocaleString('id-ID')}
+                  Rp {(amount ?? 0).toLocaleString('id-ID')}
                 </span>
               </div>
               <input
@@ -119,7 +119,7 @@ export const EmergencyWithdrawalModal: React.FC<EmergencyWithdrawalModalProps> =
               />
               <div className="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
                 <span>Rp 50.000</span>
-                <span>Maks Rp {maxAllowed.toLocaleString('id-ID')}</span>
+                <span>Maks Rp {(maxAllowed ?? 0).toLocaleString('id-ID')}</span>
               </div>
             </div>
 

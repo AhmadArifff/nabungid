@@ -100,7 +100,7 @@ export const DigitalReceiptModal: React.FC<DigitalReceiptModalProps> = ({
           <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-emerald-500/20 text-center my-3">
             <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Jumlah Pembayaran:</span>
             <span className="text-2xl font-black font-mono text-emerald-400">
-              Rp {ledger.amount.toLocaleString('id-ID')}
+              Rp {(ledger?.amount ?? 0).toLocaleString('id-ID')}
             </span>
             <span className="text-[10px] text-emerald-300 block mt-0.5 font-semibold">
               (Lunas & Terverifikasi ke Kas Tabungan)

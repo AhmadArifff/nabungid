@@ -22,7 +22,7 @@ export const SlidingNumber: React.FC<SlidingNumberProps> = ({
     setDisplayValue(value);
   }, [value]);
 
-  const formatted = displayValue.toLocaleString('id-ID');
+  const formatted = (displayValue ?? 0).toLocaleString('id-ID');
 
   return (
     <span className={`inline-flex items-center font-mono font-bold ${className}`}>

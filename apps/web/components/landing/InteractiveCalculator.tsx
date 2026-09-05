@@ -92,7 +92,7 @@ export const InteractiveCalculator: React.FC = () => {
                         : 'bg-slate-900/80 text-slate-300 border-white/10 hover:bg-slate-800'
                     }`}
                   >
-                    Rp {(preset / 1000).toLocaleString('id-ID')}k/mgg
+                    Rp {((preset ?? 0) / 1000).toLocaleString('id-ID')}k/mgg
                   </button>
                 ))}
               </div>
@@ -106,7 +106,7 @@ export const InteractiveCalculator: React.FC = () => {
                   <span>Pilihan Paket Barang / Sembako:</span>
                 </span>
                 <span className="text-xs text-amber-400">
-                  {selectedPackagePrice > 0 ? `Rp ${selectedPackagePrice.toLocaleString('id-ID')}` : 'Tanpa Barang'}
+                  {(selectedPackagePrice ?? 0) > 0 ? `Rp ${(selectedPackagePrice ?? 0).toLocaleString('id-ID')}` : 'Tanpa Barang'}
                 </span>
               </label>
 
@@ -130,7 +130,7 @@ export const InteractiveCalculator: React.FC = () => {
                       )}
                       <div className="font-semibold text-sm text-white">{pkg.name}</div>
                       <div className="text-xs font-mono font-bold text-amber-400 mt-0.5">
-                        {pkg.price > 0 ? `Rp ${pkg.price.toLocaleString('id-ID')}` : 'Rp 0 (Uang Tunai Murni)'}
+                        {(pkg.price ?? 0) > 0 ? `Rp ${(pkg.price ?? 0).toLocaleString('id-ID')}` : 'Rp 0 (Uang Tunai Murni)'}
                       </div>
                       <div className="text-[11px] text-slate-400 mt-1 leading-snug">{pkg.desc}</div>
                     </button>
@@ -147,7 +147,7 @@ export const InteractiveCalculator: React.FC = () => {
                   <span>Simulasi Tarik Darurat di Tengah Tahun (Maks Rp 500k, 1x):</span>
                 </label>
                 <span className="text-xs font-mono font-bold text-amber-300">
-                  Rp {emergencyWithdrawalAmount.toLocaleString('id-ID')}
+                  Rp {(emergencyWithdrawalAmount ?? 0).toLocaleString('id-ID')}
                 </span>
               </div>
 
@@ -185,7 +185,7 @@ export const InteractiveCalculator: React.FC = () => {
                 <div className="flex justify-between items-center text-slate-300">
                   <span>Total Tabungan Terkumpul:</span>
                   <span className="font-mono font-semibold text-white">
-                    <SlidingNumber value={simulation.grossSavings} prefix="Rp " />
+                    <SlidingNumber value={simulation?.grossSavings ?? 0} prefix="Rp " />
                   </span>
                 </div>
 
@@ -194,28 +194,28 @@ export const InteractiveCalculator: React.FC = () => {
                     <span className="text-red-400 mr-1">-</span> Biaya Admin (1 Tahun):
                   </span>
                   <span className="font-mono text-red-400">
-                    - Rp {simulation.adminFee.toLocaleString('id-ID')}
+                    - Rp {(simulation?.adminFee ?? 0).toLocaleString('id-ID')}
                   </span>
                 </div>
 
-                {simulation.selectedPackagePrice > 0 && (
+                {(simulation?.selectedPackagePrice ?? 0) > 0 && (
                   <div className="flex justify-between items-center text-slate-400">
                     <span className="flex items-center">
                       <span className="text-red-400 mr-1">-</span> Nilai Paket Barang:
                     </span>
                     <span className="font-mono text-red-400">
-                      - Rp {simulation.selectedPackagePrice.toLocaleString('id-ID')}
+                      - Rp {(simulation?.selectedPackagePrice ?? 0).toLocaleString('id-ID')}
                     </span>
                   </div>
                 )}
 
-                {simulation.emergencyWithdrawalAmount > 0 && (
+                {(simulation?.emergencyWithdrawalAmount ?? 0) > 0 && (
                   <div className="flex justify-between items-center text-slate-400">
                     <span className="flex items-center">
                       <span className="text-amber-400 mr-1">-</span> Penarikan Darurat (0% denda):
                     </span>
                     <span className="font-mono text-amber-400">
-                      - Rp {simulation.emergencyWithdrawalAmount.toLocaleString('id-ID')}
+                      - Rp {(simulation?.emergencyWithdrawalAmount ?? 0).toLocaleString('id-ID')}
                     </span>
                   </div>
                 )}
