@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ToastContainer } from '../components/ui/ToastContainer';
 import { PwaInstallPrompt } from '../components/pwa/PwaInstallPrompt';
+import { GlobalMaintenanceListener } from '../components/common/GlobalMaintenanceListener';
 
 export const metadata: Metadata = {
   title: 'NabungID — Platform Tabungan Hari Raya & Paket Lebaran 1 Tahun Penuh',
@@ -43,6 +44,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
       <body className="bg-[#070b12] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
+        <GlobalMaintenanceListener />
         {children}
         <ToastContainer />
         <PwaInstallPrompt />

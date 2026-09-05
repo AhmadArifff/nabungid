@@ -106,6 +106,11 @@ app.get(['/health', '/api/health', '/api/v1/health'], async (req, res) => {
   });
 });
 
+import { checkMaintenanceMode } from './middleware/maintenance.middleware';
+
+// Check global maintenance mode (blocks nasabah when maintenance is ON)
+app.use(checkMaintenanceMode);
+
 // Mount API routes (dukung baik /api/v1 maupun /v1)
 app.use(['/api/v1', '/v1'], rootRouter);
 

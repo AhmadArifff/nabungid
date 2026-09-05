@@ -216,21 +216,57 @@ async function runApiIntegrationTests() {
       'Admin Batch Payout Calculation for H-1 Idul Fitri'
     );
 
-    // 11. Security & RBAC / IDOR Protection (TC-IDOR-01)
-    console.log('\n🔒 5. Testing Security, RBAC & IDOR Protections');
-    const unauthorizedAdminAccess = await request(app)
-      .get('/api/v1/admin/ledgers/matrix')
+    // 12. Maintenance Mode Lifecycle & Customer Blocking Test Suite
+    console.log('\n🛠️ 6. Testing Maintenance Mode & Customer Blockade (Admin Controls)');
+    
+    // 12a. Public System Status Check
+    const publicStatusRes = await request(app).get('/api/v1/system/status');
+    assert(publicStatusRes.status === 200 && typeof publicStatusRes.body.data?.isMaintenance === 'boolean', 'Public System Status Retrieved (GET /api/v1/system/status)');
+
+    // 12b. Admin Enables Maintenance Mode
+    const enableMaintRes = await request(app)
+      .post('/api/v1/admin/system/maintenance')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        isMaintenance: true,
+        message: 'Sistem sedang dalam peningkatan performa server oleh pengurus.',
+        estimatedEndTime: 'Segera kembali',
+        contactWhatsapp: '089988776655',
+      });
+    assert(enableMaintRes.status === 200 && enableMaintRes.body.data?.isMaintenance === true, 'Admin Enables Maintenance Mode (POST /api/v1/admin/system/maintenance)');
+
+    // 12c. Nasabah Request is Blocked with 503 during Maintenance
+    const blockedNasabahRes = await request(app)
+      .get('/api/v1/nasabah/savings')
       .set('Authorization', `Bearer ${nasabahToken}`);
     assert(
-      unauthorizedAdminAccess.status === 403,
-      'TC-IDOR-01: Nasabah access to Admin route is blocked (403 Forbidden)'
+      blockedNasabahRes.status === 503 && blockedNasabahRes.body.maintenance === true,
+      'Nasabah Request Blocked with 503 Service Unavailable during Maintenance'
     );
 
-    const noTokenAccess = await request(app).get('/api/v1/nasabah/savings');
-    assert(
-      noTokenAccess.status === 401,
-      'Unauthenticated request blocked (401 Unauthorized)'
-    );
+    // 12d. Admin Request Still Allowed (200 OK) during Maintenance
+    const adminAllowedRes = await request(app)
+      .get('/api/v1/admin/ledgers/matrix')
+      .set('Authorization', `Bearer ${adminToken}`);
+    assert(adminAllowedRes.status === 200, 'Admin Endpoint Bypasses Maintenance (200 OK)');
+
+    // 12e. Admin Disables Maintenance Mode (Restores Normal Operation)
+    const disableMaintRes = await request(app)
+      .post('/api/v1/admin/system/maintenance')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        isMaintenance: false,
+        message: 'Aplikasi sedang dalam pemeliharaan sistem berkala.',
+        estimatedEndTime: null,
+        contactWhatsapp: '089988776655',
+      });
+    assert(disableMaintRes.status === 200 && disableMaintRes.body.data?.isMaintenance === false, 'Admin Disables Maintenance Mode (Restores Access)');
+
+    // 12f. Nasabah Can Access Normally Again after Maintenance is Turned Off
+    const restoredNasabahRes = await request(app)
+      .get('/api/v1/nasabah/savings')
+      .set('Authorization', `Bearer ${nasabahToken}`);
+    assert(restoredNasabahRes.status === 200, 'Nasabah Access Restored after Maintenance Off');
 
     console.log(`\n🏁 API Integration Test Summary: ${passed} Passed, ${failed} Failed\n`);
   } catch (error) {

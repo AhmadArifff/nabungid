@@ -110,3 +110,12 @@ export interface DistributionPayoutSummary {
 
 export type DistributionCalculation = DistributionPayoutSummary;
 
+export interface MaintenanceConfig {
+  isMaintenance: boolean;
+  message: string;
+  estimatedEndTime?: string | null;
+  contactWhatsapp?: string | null;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
