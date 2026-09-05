@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Sparkles,
   CheckCircle2,
+  AlertCircle,
   Eye,
   EyeOff,
   ArrowRight,
@@ -39,10 +40,17 @@ import {
   MapPin,
   Flame,
   Award,
+  User,
+  Phone,
+  Mail,
+  HelpCircle,
+  ShieldAlert,
+  ArrowUpRight,
+  ShoppingBag,
 } from 'lucide-react';
+import { CircularProgress } from '../nasabah/CircularProgress';
 
-export type SimulatorStep = 0 | 1 | 2 | 3;
-export type AppViewMode = 'homescreen' | 'splash' | 'app';
+export type SimulatorStep = 0 | 1 | 2;
 
 interface StepInfo {
   id: SimulatorStep;
@@ -53,82 +61,81 @@ interface StepInfo {
   description: string;
 }
 
+// Exactly 3 Real Customer Steps: Daftar, Login, Dashboard
 const STEPS: StepInfo[] = [
   {
     id: 0,
     number: '1',
-    shortTitle: 'Daftar',
+    shortTitle: 'Daftar Akun',
     title: 'Daftar Akun',
     icon: UserPlus,
-    description: 'Registrasi kilat 1 menit hanya dengan No. WhatsApp & Nama.',
+    description: 'Tampilan registrasi nasabah identik dengan formulir asli.',
   },
   {
     id: 1,
     number: '2',
-    shortTitle: 'Login',
+    shortTitle: 'Login Masuk',
     title: 'Login Masuk',
     icon: LogIn,
-    description: 'Akses aman dengan No. HP atau Email & proteksi password.',
+    description: 'Tampilan login nasabah identik dengan halaman autentikasi asli.',
   },
   {
     id: 2,
     number: '3',
     shortTitle: 'Dashboard',
-    title: 'Dashboard',
+    title: 'Dashboard Nasabah',
     icon: LayoutDashboard,
-    description: 'Pantau saldo real-time, progres 50 minggu & setor mingguan.',
-  },
-  {
-    id: 3,
-    number: '4',
-    shortTitle: 'Fitur',
-    title: 'Fitur Unggulan',
-    icon: Sparkles,
-    description: 'Buku 50 minggu, paket sembako daging, kwitansi & tarik darurat.',
+    description: 'Tampilan dashboard nasabah identik dengan sistem tabungan asli.',
   },
 ];
 
 export const CustomerAppSimulator: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<SimulatorStep>(0);
-  const [appViewMode, setAppViewMode] = useState<AppViewMode>('app');
-  const [is3DView, setIs3DView] = useState<boolean>(true);
-  const [isPlaying, setIsPlaying] = useState<boolean>(true); // Running auto-demo by default!
+  const [is3DView, setIs3DView] = useState<boolean>(false); // DEFAULT LURUS TIDAK SUDUT 3D!
+  const [isPlaying, setIsPlaying] = useState<boolean>(true); // Running auto demo loop by default!
   const [progress, setProgress] = useState<number>(0);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
   const [loginSuccessToast, setLoginSuccessToast] = useState<boolean>(false);
 
-  // Realistic Interactive Data States inside Phone
+  // States mirroring the real RegisterForm
+  const [registerName, setRegisterName] = useState('Ibu Siti Aminah');
+  const [registerPhone, setRegisterPhone] = useState('081288776655');
+  const [registerEmail, setRegisterEmail] = useState('siti.aminah@gmail.com');
+  const [registerPassword, setRegisterPassword] = useState('Amanah123!');
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState('Amanah123!');
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false);
   const [selectedNominal, setSelectedNominal] = useState<number>(100000);
-  const [selectedPackageTier, setSelectedPackageTier] = useState<'hemat' | 'berkah' | 'platinum'>('platinum');
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [activeFeatureTab, setActiveFeatureTab] = useState<'buku' | 'paket' | 'kwitansi' | 'darurat'>('buku');
-  const [isSimulatedUploadSuccess, setIsSimulatedUploadSuccess] = useState<boolean>(false);
+  const [registerAgreed, setRegisterAgreed] = useState(true);
+
+  // States mirroring the real LoginForm
+  const [loginRole, setLoginRole] = useState<'NASABAH' | 'ADMIN'>('NASABAH');
+  const [loginMethod, setLoginMethod] = useState<'PHONE' | 'EMAIL'>('PHONE');
+  const [loginIdentifier, setLoginIdentifier] = useState('081288776655');
+  const [loginPassword, setLoginPassword] = useState('Nasabah123!');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+
+  // States mirroring the real Dashboard
+  const [checkedInWeek36, setCheckedInWeek36] = useState(false);
 
   // ==========================================
-  // 3D PERSPECTIVE PHYSICS WITH SMOOTH SPRING TILT
+  // PERSPECTIVE PHYSICS (DEFAULT 0 DEG LURUS)
   // ==========================================
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
   const springConfig = { damping: 26, stiffness: 150 };
   const rotateX = useSpring(
-    useTransform(mouseY, [-0.5, 0.5], is3DView ? [16, -2] : [6, -6]),
+    useTransform(mouseY, [-0.5, 0.5], is3DView ? [16, -2] : [0, 0]),
     springConfig
   );
   const rotateY = useSpring(
-    useTransform(mouseX, [-0.5, 0.5], is3DView ? [-24, -2] : [-10, 10]),
-    springConfig
-  );
-  const shadowX = useSpring(
-    useTransform(mouseX, [-0.5, 0.5], is3DView ? [30, 10] : [10, -10]),
-    springConfig
-  );
-  const shadowY = useSpring(
-    useTransform(mouseY, [-0.5, 0.5], [28, 48]),
+    useTransform(mouseX, [-0.5, 0.5], is3DView ? [-24, -2] : [0, 0]),
     springConfig
   );
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!is3DView) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -142,9 +149,9 @@ export const CustomerAppSimulator: React.FC = () => {
   };
 
   // ==========================================
-  // AUTO-PLAY DEMO TIMER & TRANSITIONS (5.5s PER STEP)
+  // AUTO-PLAY DEMO TIMER (6.0s PER STEP)
   // ==========================================
-  const STEP_DURATION = 5500; // 5.5 seconds per step
+  const STEP_DURATION = 6000;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -156,17 +163,11 @@ export const CustomerAppSimulator: React.FC = () => {
     intervalRef.current = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          // Auto advance to next step in the loop
           setCurrentStep((curr) => {
-            const next = ((curr + 1) % 4) as SimulatorStep;
-            if (next === 1) {
-              // Trigger login simulation animation automatically
-              setIsAuthenticating(false);
-            }
+            const next = ((curr + 1) % 3) as SimulatorStep;
             if (next === 2) {
-              // Trigger success toast on entering dashboard
               setLoginSuccessToast(true);
-              setTimeout(() => setLoginSuccessToast(false), 2500);
+              setTimeout(() => setLoginSuccessToast(false), 2600);
             }
             return next;
           });
@@ -181,37 +182,15 @@ export const CustomerAppSimulator: React.FC = () => {
     };
   }, [isPlaying]);
 
-  // Handle user selecting step manually
   const handleStepSelect = (step: SimulatorStep) => {
-    if (appViewMode !== 'app') {
-      handleLaunchApp(step);
-    } else {
-      setCurrentStep(step);
-      setProgress(0);
-    }
+    setCurrentStep(step);
+    setProgress(0);
   };
 
   const togglePlayPause = () => {
     setIsPlaying((prev) => !prev);
   };
 
-  // Launch App Sequence from Homescreen
-  const handleLaunchApp = (targetStep: SimulatorStep = 2) => {
-    setAppViewMode('splash');
-    setTimeout(() => {
-      setCurrentStep(targetStep);
-      setAppViewMode('app');
-      setProgress(0);
-    }, 750);
-  };
-
-  // Return to Phone Homescreen
-  const handleReturnToHomescreen = () => {
-    setAppViewMode('homescreen');
-    setIsPlaying(false);
-  };
-
-  // Login button clicked inside phone screen
   const handlePerformLogin = () => {
     setIsAuthenticating(true);
     setTimeout(() => {
@@ -226,23 +205,22 @@ export const CustomerAppSimulator: React.FC = () => {
   return (
     <div className="relative w-full max-w-xl mx-auto flex flex-col space-y-3.5">
       {/* ========================================================================= */}
-      {/* REDESIGNED TOP BAR: NEAT, SPACIOUS & NO TEXT WRAPPING */}
+      {/* TOP BAR: NEAT 3 STEPS (ZERO TEXT WRAPPING, PROPER BUTTONS) */}
       {/* ========================================================================= */}
       <div className="bg-slate-900/95 border border-white/10 p-2.5 sm:p-3 rounded-2xl backdrop-blur-xl shadow-xl space-y-2.5 z-20">
-        {/* Row 1: Header Badge & Utility Controls */}
+        {/* Row 1: Status & Controls */}
         <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2">
           <div className="flex items-center space-x-2">
             <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
             <span className="text-xs font-bold text-white tracking-wide">
-              Demo Otomatis Alur Nasabah
+              Demo Otomatis Aplikasi Nasabah
             </span>
-            <span className="hidden sm:inline-block text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-semibold">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-semibold">
               {isPlaying ? '▶ Berjalan Otomatis' : '⏸ Dijeda'}
             </span>
           </div>
 
           <div className="flex items-center space-x-1.5 shrink-0">
-            {/* Play/Pause Button */}
             <button
               onClick={togglePlayPause}
               title={isPlaying ? 'Jeda Demo Otomatis' : 'Putar Demo Otomatis'}
@@ -252,53 +230,39 @@ export const CustomerAppSimulator: React.FC = () => {
               <span className="text-[11px] font-medium">{isPlaying ? 'Jeda' : 'Putar'}</span>
             </button>
 
-            {/* Home HP Toggle */}
-            <button
-              onClick={() => setAppViewMode(appViewMode === 'homescreen' ? 'app' : 'homescreen')}
-              title={appViewMode === 'homescreen' ? 'Buka Aplikasi NabungID' : 'Kembali ke Layar Utama HP'}
-              className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center space-x-1 transition-all ${
-                appViewMode === 'homescreen'
-                  ? 'bg-amber-400 text-slate-950 font-bold shadow'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-              }`}
-            >
-              <Home className="w-3.5 h-3.5" />
-              <span className="text-[11px]">{appViewMode === 'homescreen' ? 'Layar HP' : 'Home HP'}</span>
-            </button>
-
-            {/* 3D Angle Toggle */}
+            {/* Optional 3D view toggle (Defaults to Lurus) */}
             <button
               onClick={() => setIs3DView((prev) => !prev)}
-              title="Ubah Sudut Pandang 3D Smartphone"
+              title="Ubah Tampilan: Lurus (Default) atau Sudut 3D"
               className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center space-x-1 transition-all ${
                 is3DView
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                  ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
               }`}
             >
               <Rotate3d className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[11px]">{is3DView ? 'Sudut 3D' : 'Lurus'}</span>
+              <span className="text-[11px] font-bold">{is3DView ? 'Sudut 3D' : 'Lurus (Default)'}</span>
             </button>
           </div>
         </div>
 
-        {/* Row 2: 4 Step Navigation Tabs (Zero Awkward Wrapping) */}
-        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+        {/* Row 2: 3 Step Navigation Tabs (Spacious & Zero Text Wrapping) */}
+        <div className="grid grid-cols-3 gap-2">
           {STEPS.map((step) => {
             const Icon = step.icon;
-            const isActive = appViewMode === 'app' && currentStep === step.id;
+            const isActive = currentStep === step.id;
             return (
               <button
                 key={step.id}
                 onClick={() => handleStepSelect(step.id)}
-                className={`relative px-2 py-2 rounded-xl text-center transition-all duration-200 flex items-center justify-center space-x-1.5 whitespace-nowrap ${
+                className={`relative px-3 py-2 rounded-xl text-center transition-all duration-200 flex items-center justify-center space-x-2 whitespace-nowrap ${
                   isActive
                     ? 'bg-gradient-to-r from-emerald-500/25 to-amber-500/20 border border-emerald-500/50 text-white shadow-md'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
                 }`}
               >
                 <span
-                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${
+                  className={`text-[11px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${
                     isActive ? 'bg-amber-400 text-slate-950 shadow-sm' : 'bg-slate-800 text-slate-300'
                   }`}
                 >
@@ -306,9 +270,9 @@ export const CustomerAppSimulator: React.FC = () => {
                 </span>
                 <span className="text-xs font-bold text-white truncate">{step.shortTitle}</span>
 
-                {/* Progress bar under active step */}
+                {/* Animated progress bar under active step */}
                 {isActive && (
-                  <div className="absolute bottom-0 left-1.5 right-1.5 h-0.5 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-slate-800 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-emerald-400 to-amber-400 transition-all duration-75"
                       style={{ width: `${progress}%` }}
@@ -322,10 +286,10 @@ export const CustomerAppSimulator: React.FC = () => {
       </div>
 
       {/* ========================================================================= */}
-      {/* 3D SMARTPHONE CONTAINER (TRUE 3D HARDWARE MODEL WITH PROPER REAL DATA) */}
+      {/* SMARTPHONE FRAME: DEFAULT LURUS (0 DEG), IDENTICAL REAL UI ELEMENTS */}
       {/* ========================================================================= */}
       <div
-        style={{ perspective: 1400 }}
+        style={{ perspective: is3DView ? 1400 : undefined }}
         className="relative flex justify-center items-center py-2 select-none"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
@@ -334,47 +298,28 @@ export const CustomerAppSimulator: React.FC = () => {
           style={{
             rotateX,
             rotateY,
-            transformStyle: 'preserve-3d',
+            transformStyle: is3DView ? 'preserve-3d' : undefined,
           }}
           className="relative w-full max-w-[420px] sm:max-w-[440px] transition-transform duration-75"
         >
-          {/* Left Side 3D Physical Thickness Rim (Titanium Bevel Extrusion) */}
-          <div
-            style={{ transform: 'translateZ(-8px) rotateY(-90deg)' }}
-            className="absolute -left-[14px] top-12 bottom-12 w-[14px] bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 border-l border-slate-500/40 rounded-l-md pointer-events-none"
-          />
-
-          {/* Physical Side Buttons */}
-          <div className="absolute -left-[6px] top-24 w-[6px] h-7 bg-slate-600 rounded-l-md border-l border-slate-400 shadow-md" />
-          <div className="absolute -left-[6px] top-36 w-[6px] h-12 bg-slate-600 rounded-l-md border-l border-slate-400 shadow-md" />
-          <div className="absolute -left-[6px] top-52 w-[6px] h-12 bg-slate-600 rounded-l-md border-l border-slate-400 shadow-md" />
-          <div className="absolute -right-[6px] top-40 w-[6px] h-16 bg-slate-600 rounded-r-md border-r border-slate-400 shadow-md" />
-
-          {/* Outer Titanium Aerospace Frame */}
-          <div className="relative rounded-[50px] p-[12px] sm:p-[14px] bg-gradient-to-tr from-slate-900 via-slate-700 to-slate-800 border-[3px] border-slate-500/90 shadow-[0_35px_80px_-15px_rgba(0,0,0,0.95),-15px_15px_30px_rgba(0,0,0,0.7),0_0_45px_rgba(16,185,129,0.2)] ring-1 ring-white/30">
-            {/* Dynamic Glass Glare */}
-            <div className="absolute inset-0 rounded-[48px] bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none z-30" />
-
+          {/* Outer Straight Flagship Titanium Hardware Bezel */}
+          <div className="relative rounded-[48px] p-[11px] sm:p-[13px] bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 border-[2.5px] border-slate-600/80 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_35px_rgba(16,185,129,0.12)] ring-1 ring-white/20">
             {/* Inner Phone Screen */}
-            <div className="relative rounded-[38px] bg-slate-950 border border-white/10 overflow-hidden flex flex-col min-h-[530px] sm:min-h-[550px] shadow-2xl">
-              {/* Earpiece slit */}
+            <div className="relative rounded-[38px] bg-slate-950 border border-white/10 overflow-hidden flex flex-col min-h-[580px] sm:min-h-[600px] shadow-inner">
+              {/* Speaker Earpiece micro-mesh slit */}
               <div className="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-1 rounded-full bg-slate-800 z-40 border-b border-white/5" />
 
               {/* Dynamic Island Status Bar Header */}
-              <div className="pt-3.5 pb-2 px-6 flex items-center justify-between z-40 bg-slate-950/95 backdrop-blur-md border-b border-white/5">
+              <div className="pt-3 pb-2 px-6 flex items-center justify-between z-40 bg-slate-950/95 backdrop-blur-md border-b border-white/5 shrink-0">
                 <span className="text-[11px] font-bold text-white font-mono">09:41</span>
 
                 {/* Dynamic Island Pill with Camera Lens */}
-                <div
-                  onClick={() => setAppViewMode(appViewMode === 'homescreen' ? 'app' : 'homescreen')}
-                  className="flex items-center space-x-2 px-3 py-1 rounded-full bg-black border border-white/15 shadow-lg shadow-black/80 cursor-pointer hover:border-emerald-500/40 transition-colors"
-                  title="Ketuk Dynamic Island untuk Berpindah Layar"
-                >
+                <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-black border border-white/15 shadow-lg shadow-black/80">
                   <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center">
                     <div className="w-1 h-1 rounded-full bg-blue-500/80 animate-pulse" />
                   </div>
                   <span className="text-[9px] font-semibold text-emerald-400 font-mono tracking-wider">
-                    {appViewMode === 'homescreen' ? 'NabungID OS' : 'NabungID Mobile'}
+                    NabungID Mobile
                   </span>
                 </div>
 
@@ -387,801 +332,625 @@ export const CustomerAppSimulator: React.FC = () => {
               </div>
 
               {/* =================================================================== */}
-              {/* SCREEN CONTENT: REAL DATA & INFORMATIVE CUSTOMER JOURNEY */}
+              {/* INNER PHONE CONTENT: EXACT IDENTICAL REAL UI (DAFTAR / LOGIN / DASHBOARD) */}
               {/* =================================================================== */}
-              <div className="flex-1 flex flex-col justify-between relative overflow-hidden bg-slate-950">
-                {/* --------------------------------------------------------------- */}
-                {/* 1. HOMESCREEN VIEW */}
-                {/* --------------------------------------------------------------- */}
-                {appViewMode === 'homescreen' && (
-                  <motion.div
-                    key="view-homescreen"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                    className="p-5 flex-1 flex flex-col justify-between relative bg-gradient-to-b from-slate-900 via-emerald-950/40 to-slate-950"
-                  >
-                    {/* Clock & Date Header */}
-                    <div className="text-center pt-3 space-y-1">
-                      <div className="text-4xl font-extrabold text-white tracking-tight font-mono">09:41</div>
-                      <div className="text-xs text-emerald-300/80 font-medium">Sabtu, 5 September 2026</div>
-                    </div>
+              <div className="flex-1 overflow-y-auto max-h-[520px] sm:max-h-[540px] p-3.5 sm:p-4 bg-slate-950 text-slate-100 flex flex-col justify-between">
+                {/* Toast Notification on Login Success */}
+                <AnimatePresence>
+                  {loginSuccessToast && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="p-2.5 mb-2 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold shadow-xl flex items-center space-x-2"
+                    >
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>Login Berhasil! Selamat Datang, Ibu Siti Aminah 👋</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-                    {/* Lockscreen Notification Widget */}
-                    <div className="my-auto space-y-4">
-                      <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-amber-400/30 shadow-lg shadow-black/50 space-y-1.5 backdrop-blur-md">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <div className="flex items-center space-x-1.5 text-amber-300 font-bold">
-                            <Bell className="w-3.5 h-3.5 text-amber-400" />
-                            <span>Pengingat NabungID</span>
+                <AnimatePresence mode="wait">
+                  {/* ========================================================= */}
+                  {/* STEP 0: DAFTAR (IDENTIK PERSIS REGISTERFORM.TSX) */}
+                  {/* ========================================================= */}
+                  {currentStep === 0 && (
+                    <motion.div
+                      key="real-register"
+                      initial={{ opacity: 0, x: 15 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -15 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3"
+                    >
+                      {/* Brand Header */}
+                      <div className="text-center pt-1 pb-1">
+                        <div className="inline-flex items-center space-x-2 mb-1">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-amber-400 p-0.5 shadow-md">
+                            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                              <Coins className="w-4 h-4 text-amber-400" />
+                            </div>
                           </div>
-                          <span className="text-[10px] text-slate-400">Baru saja</span>
+                          <span className="text-base font-bold font-heading text-white">
+                            Nabung<span className="text-amber-400">ID</span>
+                          </span>
                         </div>
-                        <p className="text-xs text-white leading-snug">
-                          Setoran Minggu ke-36 dibuka! Segera setor Rp 100.000 agar Idul Fitri panen daging sapi & uang tunai.
+                        <h2 className="text-sm font-bold text-white tracking-tight">Mulai Menabung Berkah</h2>
+                        <p className="text-[10px] text-slate-400">
+                          Daftar sekarang untuk persiapan Hari Raya Idul Fitri yang tenang
                         </p>
                       </div>
 
-                      {/* App Grid on Homescreen */}
-                      <div className="pt-2">
-                        <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-3 text-center">
-                          Aplikasi Terpasang
-                        </div>
-                        <div className="grid grid-cols-4 gap-3 text-center">
-                          <button
-                            onClick={() => handleLaunchApp(2)}
-                            className="flex flex-col items-center group cursor-pointer"
-                          >
-                            <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-amber-400 p-0.5 shadow-xl shadow-emerald-900/50 group-hover:scale-110 transition-transform">
-                              <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-                                <Sparkles className="w-7 h-7 text-amber-400 animate-pulse" />
-                              </div>
-                              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center shadow">
-                                1
-                              </span>
-                            </div>
-                            <span className="text-[11px] font-bold text-white mt-1.5 group-hover:text-amber-300 transition-colors">
-                              NabungID
-                            </span>
-                          </button>
+                      {/* Glass Card Container identik RegisterForm */}
+                      <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-white/10 shadow-xl relative overflow-hidden space-y-2.5">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent" />
 
-                          <div className="flex flex-col items-center opacity-60">
-                            <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-white/10 flex items-center justify-center text-emerald-400 shadow">
-                              <MessageSquare className="w-6 h-6" />
+                        {/* Nama Lengkap */}
+                        <div>
+                          <label className="block text-[10px] font-medium text-slate-300 mb-0.5">Nama Lengkap</label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-500">
+                              <User className="w-3.5 h-3.5" />
                             </div>
-                            <span className="text-[11px] text-slate-400 mt-1.5">WhatsApp</span>
-                          </div>
-
-                          <div className="flex flex-col items-center opacity-60">
-                            <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-white/10 flex items-center justify-center text-amber-400 shadow">
-                              <Calculator className="w-6 h-6" />
-                            </div>
-                            <span className="text-[11px] text-slate-400 mt-1.5">Kalkulator</span>
-                          </div>
-
-                          <div className="flex flex-col items-center opacity-60">
-                            <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-white/10 flex items-center justify-center text-slate-300 shadow">
-                              <Settings className="w-6 h-6" />
-                            </div>
-                            <span className="text-[11px] text-slate-400 mt-1.5">Setelan</span>
+                            <input
+                              type="text"
+                              readOnly
+                              value={registerName}
+                              placeholder="cth. Ahmad Arif"
+                              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-950/60 border border-white/10 text-white text-xs placeholder:text-slate-600"
+                            />
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    <div className="pt-2">
-                      <button
-                        onClick={() => handleLaunchApp(2)}
-                        className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-950/60 flex items-center justify-center space-x-2 animate-bounce"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        <span>Ketuk untuk Buka Aplikasi NabungID 📱</span>
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* --------------------------------------------------------------- */}
-                {/* 2. SPLASH SCREEN */}
-                {/* --------------------------------------------------------------- */}
-                {appViewMode === 'splash' && (
-                  <motion.div
-                    key="view-splash"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="flex-1 flex flex-col items-center justify-center p-6 bg-slate-950 space-y-4 text-center"
-                  >
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-amber-400 p-1 shadow-2xl shadow-emerald-500/30 animate-pulse">
-                      <div className="w-full h-full bg-slate-950 rounded-[12px] flex items-center justify-center">
-                        <Sparkles className="w-8 h-8 text-amber-400" />
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-white">NabungID Mobile</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Membuka Aplikasi Nasabah...</p>
-                    </div>
-                    <div className="w-40 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-emerald-400 to-amber-400 rounded-full animate-pulse w-full" />
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* --------------------------------------------------------------- */}
-                {/* 3. IN-APP SCREENS WITH REAL INFORMATIVE DATA */}
-                {/* --------------------------------------------------------------- */}
-                {appViewMode === 'app' && (
-                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between relative overflow-hidden">
-                    {/* Toast Notification if login success */}
-                    <AnimatePresence>
-                      {loginSuccessToast && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          className="absolute top-2 left-4 right-4 z-50 p-2.5 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold shadow-xl flex items-center space-x-2"
-                        >
-                          <CheckCircle2 className="w-4 h-4 shrink-0" />
-                          <span>Login Berhasil! Selamat Datang, Ibu Siti Aminah 👋</span>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    <AnimatePresence mode="wait">
-                      {/* ========================================================= */}
-                      {/* STEP 0: DAFTAR AKUN (PROPER REAL DATA) */}
-                      {/* ========================================================= */}
-                      {currentStep === 0 && (
-                        <motion.div
-                          key="step-daftar"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          transition={{ duration: 0.25 }}
-                          className="space-y-3"
-                        >
-                          {/* Real Header */}
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center space-x-1">
-                                <Sparkles className="w-3 h-3" />
-                                <span>Pendaftaran Idul Fitri 1447 H</span>
-                              </div>
-                              <h4 className="text-base font-bold text-white mt-0.5">Formulir Nasabah Baru</h4>
-                            </div>
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
-                              Gratis Pendaftaran
-                            </span>
+                        {/* Nomor WhatsApp */}
+                        <div>
+                          <div className="flex items-center justify-between mb-0.5">
+                            <label className="text-[10px] font-medium text-slate-300">
+                              Nomor WhatsApp Aktif <span className="text-rose-400">*</span>
+                            </label>
+                            <span className="text-[9px] text-amber-400 font-medium">Hanya Angka (0-9)</span>
                           </div>
-
-                          {/* Real Identity Inputs */}
-                          <div className="space-y-2">
-                            <div>
-                              <label className="block text-[11px] font-medium text-slate-300 mb-0.5">Nama Lengkap Sesuai KTP</label>
-                              <div className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white flex items-center justify-between">
-                                <span>Ibu Siti Aminah, S.Pd.</span>
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                              </div>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-500">
+                              <Phone className="w-3.5 h-3.5" />
                             </div>
-
-                            <div>
-                              <label className="block text-[11px] font-medium text-slate-300 mb-0.5">Nomor WhatsApp Aktif (Notifikasi)</label>
-                              <div className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-emerald-500/40 text-xs text-white flex items-center justify-between shadow-sm shadow-emerald-500/10">
-                                <span>0812-8877-6655</span>
-                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
-                                  Terhubung WA ✓
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* 3 Real Package Options */}
-                            <div>
-                              <label className="block text-[11px] font-medium text-slate-300 mb-1">
-                                Pilih Paket Tabungan Mingguan
-                              </label>
-                              <div className="grid grid-cols-3 gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedNominal(20000);
-                                    setSelectedPackageTier('hemat');
-                                  }}
-                                  className={`p-1.5 rounded-xl text-center transition-all ${
-                                    selectedNominal === 20000
-                                      ? 'bg-amber-400 text-slate-950 font-bold shadow-md'
-                                      : 'bg-slate-900 text-slate-300 border border-white/10'
-                                  }`}
-                                >
-                                  <div className="text-[10px] font-semibold">Hemat</div>
-                                  <div className="text-xs font-bold font-mono">20rb/mgg</div>
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedNominal(50000);
-                                    setSelectedPackageTier('berkah');
-                                  }}
-                                  className={`p-1.5 rounded-xl text-center transition-all ${
-                                    selectedNominal === 50000
-                                      ? 'bg-amber-400 text-slate-950 font-bold shadow-md'
-                                      : 'bg-slate-900 text-slate-300 border border-white/10'
-                                  }`}
-                                >
-                                  <div className="text-[10px] font-semibold">Berkah</div>
-                                  <div className="text-xs font-bold font-mono">50rb/mgg</div>
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedNominal(100000);
-                                    setSelectedPackageTier('platinum');
-                                  }}
-                                  className={`p-1.5 rounded-xl text-center transition-all relative ${
-                                    selectedNominal === 100000
-                                      ? 'bg-amber-400 text-slate-950 font-bold shadow-md'
-                                      : 'bg-slate-900 text-slate-300 border border-white/10'
-                                  }`}
-                                >
-                                  <span className="absolute -top-1.5 right-1 px-1 rounded bg-rose-500 text-white text-[8px] font-bold">
-                                    Favorit 🔥
-                                  </span>
-                                  <div className="text-[10px] font-semibold">Platinum</div>
-                                  <div className="text-xs font-bold font-mono">100rb/mgg</div>
-                                </button>
-                              </div>
-
-                              {/* Real Outcome Summary */}
-                              <div className="mt-1.5 p-2 rounded-xl bg-slate-900/90 border border-white/5 flex items-center justify-between text-[11px]">
-                                <span className="text-slate-400">Total Hasil 50 Minggu:</span>
-                                <strong className="text-amber-300 font-mono font-bold text-xs">
-                                  Rp {(selectedNominal * 50).toLocaleString('id-ID')} + Daging Sapi
-                                </strong>
-                              </div>
-                            </div>
+                            <input
+                              type="text"
+                              readOnly
+                              value={registerPhone}
+                              placeholder="081234567890 (Wajib angka murni)"
+                              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-950/60 border border-emerald-500/60 text-white text-xs font-mono tracking-wide"
+                            />
                           </div>
+                          <p className="text-[9px] text-emerald-400 flex items-center space-x-1 mt-0.5">
+                            <CheckCircle2 className="w-2.5 h-2.5 inline shrink-0" />
+                            <span>Format nomor WhatsApp valid (12 digit angka murni)</span>
+                          </p>
+                        </div>
 
-                          {/* Submit Action */}
-                          <div className="pt-0.5">
-                            <button
-                              type="button"
-                              onClick={() => handleStepSelect(1)}
-                              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-950/50 flex items-center justify-center space-x-1.5 transition-all group"
-                            >
-                              <span>Simulasikan Lanjut ke Login</span>
-                              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                            <div className="mt-1.5 text-center text-[10px] text-slate-400 flex items-center justify-center space-x-1.5">
-                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                              <span>Akad Wadiah Amanah • Tanpa Bunga • Tanpa Potongan Liar</span>
+                        {/* Email */}
+                        <div>
+                          <label className="block text-[10px] font-medium text-slate-300 mb-0.5">
+                            Alamat Email <span className="text-rose-400">*</span>
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-500">
+                              <Mail className="w-3.5 h-3.5" />
                             </div>
+                            <input
+                              type="email"
+                              readOnly
+                              value={registerEmail}
+                              placeholder="ahmad@example.com"
+                              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-950/60 border border-white/10 text-white text-xs placeholder:text-slate-600"
+                            />
                           </div>
-                        </motion.div>
-                      )}
+                        </div>
 
-                      {/* ========================================================= */}
-                      {/* STEP 1: LOGIN AMAN (MASUK KE DASHBOARD) */}
-                      {/* ========================================================= */}
-                      {currentStep === 1 && (
-                        <motion.div
-                          key="step-login"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          transition={{ duration: 0.25 }}
-                          className="space-y-3"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center space-x-1">
+                        {/* Password & Confirm */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[10px] font-medium text-slate-300 mb-0.5">Password</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-slate-500">
                                 <Lock className="w-3 h-3" />
-                                <span>Akses Nasabah Aman</span>
                               </div>
-                              <h4 className="text-base font-bold text-white mt-0.5">Masuk ke Akun Anda</h4>
+                              <input
+                                type={showRegisterPassword ? 'text' : 'password'}
+                                readOnly
+                                value={registerPassword}
+                                className="w-full pl-6 pr-6 py-1.5 rounded-xl bg-slate-950/60 border border-white/10 text-white text-[11px] font-mono"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                                className="absolute inset-y-0 right-0 pr-2 flex items-center text-slate-400"
+                              >
+                                {showRegisterPassword ? <EyeOff className="w-3 h-3 text-emerald-400" /> : <Eye className="w-3 h-3" />}
+                              </button>
                             </div>
-                            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[10px] font-semibold">
-                              Multi-Login WA
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-medium text-slate-300 mb-0.5">Konfirmasi</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-slate-500">
+                                <Lock className="w-3 h-3" />
+                              </div>
+                              <input
+                                type={showRegisterConfirmPassword ? 'text' : 'password'}
+                                readOnly
+                                value={registerConfirmPassword}
+                                className="w-full pl-6 pr-6 py-1.5 rounded-xl bg-slate-950/60 border border-emerald-500/60 text-white text-[11px] font-mono"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowRegisterConfirmPassword(!showRegisterConfirmPassword)}
+                                className="absolute inset-y-0 right-0 pr-2 flex items-center text-slate-400"
+                              >
+                                {showRegisterConfirmPassword ? <EyeOff className="w-3 h-3 text-emerald-400" /> : <Eye className="w-3 h-3" />}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Program Selection Segmented Buttons */}
+                        <div>
+                          <label className="block text-[10px] font-medium text-slate-300 mb-1">
+                            Pilihan Target Setoran Mingguan
+                          </label>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {[
+                              { amount: 50000, label: '50rb/mg' },
+                              { amount: 100000, label: '100rb/mg' },
+                              { amount: 200000, label: '200rb/mg' },
+                            ].map((item) => (
+                              <button
+                                type="button"
+                                key={item.amount}
+                                onClick={() => setSelectedNominal(item.amount)}
+                                className={`py-1.5 px-1 rounded-xl text-[10px] font-semibold border transition-all text-center ${
+                                  selectedNominal === item.amount
+                                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-md'
+                                    : 'bg-slate-950/40 border-white/10 text-slate-400'
+                                }`}
+                              >
+                                {item.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Terms Agreement Checkbox */}
+                        <div>
+                          <label className="flex items-start space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={registerAgreed}
+                              readOnly
+                              className="mt-0.5 rounded border-white/20 bg-slate-950 text-emerald-500 text-xs"
+                            />
+                            <span className="text-[9px] text-slate-400 leading-tight">
+                              Saya menyetujui program tabungan 50 minggu mulai H+1 s.d. pencairan H-1 Idul Fitri.
+                            </span>
+                          </label>
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleStepSelect(1)}
+                          className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 flex items-center justify-center space-x-1.5 cursor-pointer"
+                        >
+                          <span>Daftar Akun Sekarang</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Register Footer */}
+                      <p className="text-center text-[10px] text-slate-400">
+                        Sudah punya akun?{' '}
+                        <button
+                          onClick={() => handleStepSelect(1)}
+                          className="font-semibold text-emerald-400 hover:underline"
+                        >
+                          Masuk Sekarang
+                        </button>
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {/* ========================================================= */}
+                  {/* STEP 1: LOGIN (IDENTIK PERSIS LOGINFORM.TSX) */}
+                  {/* ========================================================= */}
+                  {currentStep === 1 && (
+                    <motion.div
+                      key="real-login"
+                      initial={{ opacity: 0, x: 15 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -15 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3.5"
+                    >
+                      {/* Brand Header */}
+                      <div className="text-center pt-1 pb-1">
+                        <div className="inline-flex items-center space-x-2 mb-1">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-amber-400 p-0.5 shadow-md">
+                            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                              <Coins className="w-4 h-4 text-amber-400" />
+                            </div>
+                          </div>
+                          <span className="text-base font-bold font-heading text-white">
+                            Nabung<span className="text-amber-400">ID</span>
+                          </span>
+                        </div>
+                        <h2 className="text-sm font-bold text-white tracking-tight">Selamat Datang Kembali</h2>
+                        <p className="text-[10px] text-slate-400">
+                          Masuk ke akun Anda untuk memantau tabungan Idul Fitri
+                        </p>
+                      </div>
+
+                      {/* Glass Card Container identik LoginForm */}
+                      <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-white/10 shadow-xl relative overflow-hidden space-y-3">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+
+                        {/* Role Segmented Preset identik LoginForm */}
+                        <div>
+                          <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1 px-0.5">
+                            <span>Pilih Akun Demo / Peran Masuk:</span>
+                            <span className="text-amber-400 font-semibold flex items-center space-x-1">
+                              <Sparkles className="w-2.5 h-2.5" />
+                              <span>1-Click Preset</span>
                             </span>
                           </div>
 
-                          <div className="space-y-2.5">
-                            <div>
-                              <label className="block text-[11px] font-medium text-slate-300 mb-1">
-                                Nomor WhatsApp Terdaftar
-                              </label>
-                              <div className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white">
-                                <span>0812-8877-6655</span>
-                              </div>
-                            </div>
+                          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-white/10">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLoginRole('NASABAH');
+                                setLoginIdentifier('081288776655');
+                                setLoginPassword('Nasabah123!');
+                              }}
+                              className={`flex items-center justify-center space-x-1.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                                loginRole === 'NASABAH'
+                                  ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-md'
+                                  : 'text-slate-400'
+                              }`}
+                            >
+                              <User className="w-3 h-3" />
+                              <span>Demo Nasabah</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLoginRole('ADMIN');
+                                setLoginIdentifier('admin@nabungid.com');
+                                setLoginPassword('Admin123!');
+                              }}
+                              className={`flex items-center justify-center space-x-1.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                                loginRole === 'ADMIN'
+                                  ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md'
+                                  : 'text-slate-400'
+                              }`}
+                            >
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>Demo Admin</span>
+                            </button>
+                          </div>
+                        </div>
 
+                        {/* Method Sub-Tabs */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-1 bg-slate-950/70 p-0.5 rounded-lg border border-white/10 text-[10px]">
+                              <button
+                                type="button"
+                                onClick={() => setLoginMethod('PHONE')}
+                                className={`px-2 py-0.5 rounded-md font-medium transition-all ${
+                                  loginMethod === 'PHONE'
+                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                    : 'text-slate-400'
+                                }`}
+                              >
+                                No. WhatsApp
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setLoginMethod('EMAIL')}
+                                className={`px-2 py-0.5 rounded-md font-medium transition-all ${
+                                  loginMethod === 'EMAIL'
+                                    ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                                    : 'text-slate-400'
+                                }`}
+                              >
+                                Email / Username
+                              </button>
+                            </div>
+                            <span className="text-[9px] text-amber-400 font-medium">Hanya Angka (0-9)</span>
+                          </div>
+
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-500">
+                              {loginMethod === 'PHONE' ? <Phone className="w-3.5 h-3.5" /> : <Mail className="w-3.5 h-3.5" />}
+                            </div>
+                            <input
+                              type="text"
+                              readOnly
+                              value={loginIdentifier}
+                              className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-950/60 border border-white/10 text-white text-xs font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Password */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[10px] font-medium text-slate-300">Password</label>
+                            <span className="text-[9px] text-amber-400 flex items-center space-x-0.5">
+                              <HelpCircle className="w-2.5 h-2.5" />
+                              <span>Bantuan / Lupa sandi?</span>
+                            </span>
+                          </div>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-500">
+                              <Lock className="w-3.5 h-3.5" />
+                            </div>
+                            <input
+                              type={showLoginPassword ? 'text' : 'password'}
+                              readOnly
+                              value={loginPassword}
+                              className="w-full pl-8 pr-8 py-2 rounded-xl bg-slate-950/60 border border-white/10 text-white text-xs font-mono"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowLoginPassword(!showLoginPassword)}
+                              className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400"
+                            >
+                              {showLoginPassword ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                          type="button"
+                          onClick={handlePerformLogin}
+                          disabled={isAuthenticating}
+                          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-75"
+                        >
+                          {isAuthenticating ? (
+                            <>
+                              <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                              <span>Memverifikasi Akun...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Masuk Sekarang</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Login Footer */}
+                      <p className="text-center text-[10px] text-slate-400">
+                        Belum memiliki akun tabungan?{' '}
+                        <button
+                          onClick={() => handleStepSelect(0)}
+                          className="font-semibold text-amber-400 hover:underline"
+                        >
+                          Daftar Menabung Sekarang
+                        </button>
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {/* ========================================================= */}
+                  {/* STEP 2: DASHBOARD (IDENTIK PERSIS DASHBOARD/PAGE.TSX) */}
+                  {/* ========================================================= */}
+                  {currentStep === 2 && (
+                    <motion.div
+                      key="real-dashboard"
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.96 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3"
+                    >
+                      {/* Top Welcome & Eid Countdown Alert identik Dashboard */}
+                      <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-900/40 via-slate-900/80 to-slate-900/80 border border-emerald-500/20 backdrop-blur-xl">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center space-x-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0">
+                              <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                            </div>
                             <div>
-                              <div className="flex items-center justify-between mb-1">
-                                <label className="text-[11px] font-medium text-slate-300">Kata Sandi</label>
-                                <span className="text-[10px] text-amber-300">Bantuan Lupa Sandi</span>
-                              </div>
-                              <div className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white flex items-center justify-between">
-                                <span className="font-mono tracking-widest">
-                                  {showPassword ? 'berkah1447' : '••••••••'}
+                              <div className="flex items-center space-x-1.5">
+                                <h3 className="text-xs font-bold text-white">Tabungan Berkah 50 Mgg</h3>
+                                <span className="px-1.5 py-0.2 rounded-full bg-amber-400/20 text-amber-300 text-[9px] font-bold">
+                                  Ibu Siti Aminah
                                 </span>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowPassword((prev) => !prev)}
-                                  className="text-slate-400 hover:text-white transition-colors p-1"
-                                  title="Lihat/Sembunyikan Sandi"
-                                >
-                                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                </button>
                               </div>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-0.5">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-3.5 h-3.5 rounded bg-emerald-500 flex items-center justify-center text-slate-950 text-[10px] font-bold">
-                                  ✓
-                                </div>
-                                <span className="text-[11px] text-slate-300">Ingat perangkat HP ini</span>
-                              </div>
-                              <span className="text-[10px] text-emerald-400 font-mono">Sesi 30 Hari</span>
+                              <p className="text-[10px] text-slate-300 mt-0.5">
+                                Target pencairan H-1 Idul Fitri 1447H • Rp 100.000 / minggu
+                              </p>
                             </div>
                           </div>
 
-                          {/* Login CTA */}
-                          <div className="pt-1">
-                            <button
-                              type="button"
-                              onClick={handlePerformLogin}
-                              disabled={isAuthenticating}
-                              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-950/50 flex items-center justify-center space-x-1.5 transition-all group disabled:opacity-75"
-                            >
-                              {isAuthenticating ? (
-                                <>
-                                  <div className="w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                                  <span>Memverifikasi Akun...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span>Masuk ke Dashboard Nasabah</span>
-                                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                                </>
-                              )}
-                            </button>
-                            <div className="mt-1.5 text-center text-[10px] text-slate-400 flex items-center justify-center space-x-1">
-                              <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                              <span>Enkripsi TLS 256-bit • Token JWT Aman</span>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
+                          <button
+                            onClick={() => setCheckedInWeek36(!checkedInWeek36)}
+                            className="py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-[10px] shadow flex items-center space-x-1 shrink-0"
+                          >
+                            <Coins className="w-3 h-3" />
+                            <span>{checkedInWeek36 ? 'Lunas ✓' : 'Cek-in Mg-36'}</span>
+                          </button>
+                        </div>
+                      </div>
 
-                      {/* ========================================================= */}
-                      {/* STEP 2: DASHBOARD NASABAH (REAL PROPER FINANCIAL DATA) */}
-                      {/* ========================================================= */}
-                      {currentStep === 2 && (
-                        <motion.div
-                          key="step-dashboard"
-                          initial={{ opacity: 0, scale: 0.96 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.96 }}
-                          transition={{ duration: 0.25 }}
-                          className="space-y-2.5"
-                        >
-                          {/* Nasabah Header */}
-                          <div className="flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/60 to-slate-900 border border-emerald-500/20">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-7 h-7 rounded-full bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-bold text-xs">
-                                SA
-                              </div>
-                              <div>
-                                <div className="text-xs font-bold text-white flex items-center space-x-1">
-                                  <span>Ibu Siti Aminah</span>
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-normal">Platinum</span>
-                                </div>
-                                <div className="text-[10px] text-emerald-300 font-mono">ID: NBD-1447-00358</div>
-                              </div>
-                            </div>
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
-                              100% Disiplin ✓
+                      {/* 📇 Mini Member Stamp Card Strip identik Dashboard */}
+                      <div className="p-3 rounded-2xl bg-slate-900/80 border border-amber-400/30 backdrop-blur-xl space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            <span className="p-1 rounded-md bg-amber-400/20 text-amber-300">
+                              <Calendar className="w-3 h-3" />
                             </span>
-                          </div>
-
-                          {/* Main Balance Progress Card */}
-                          <div className="p-3 rounded-2xl bg-slate-900/90 border border-white/10 space-y-2 shadow-lg">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-slate-400">Total Tabungan Terkumpul:</span>
-                              <span className="text-amber-400 font-bold font-mono text-sm">
-                                Rp {(selectedNominal * 35).toLocaleString('id-ID')}
-                              </span>
-                            </div>
-
-                            <div className="space-y-1">
-                              <div className="flex justify-between text-[11px]">
-                                <span className="text-slate-300 font-semibold">Minggu ke-35 dari 50</span>
-                                <span className="text-emerald-400 font-bold">70% Tercapai</span>
-                              </div>
-                              <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                                <div
-                                  className="h-full bg-gradient-to-r from-emerald-400 to-amber-400 rounded-full"
-                                  style={{ width: '70%' }}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5 text-[10px]">
-                              <div>
-                                <span className="text-slate-400 block">Target Akhir:</span>
-                                <strong className="text-white font-mono">
-                                  Rp {(selectedNominal * 50).toLocaleString('id-ID')}
-                                </strong>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-slate-400 block">Status Absensi:</span>
-                                <strong className="text-emerald-300">35 Minggu Lunas</strong>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Setor Minggu Ini Card */}
-                          <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between">
                             <div>
-                              <div className="text-[10px] font-semibold text-emerald-300">Tagihan Minggu ke-36:</div>
-                              <div className="text-xs font-bold text-white font-mono">
-                                Rp {selectedNominal.toLocaleString('id-ID')}
+                              <div className="flex items-center space-x-1.5">
+                                <span className="text-[11px] font-bold text-white">Kartu Tabungan Cek-in</span>
+                                <span className="inline-flex items-center space-x-0.5 px-1.5 py-0.2 rounded-full bg-orange-500/20 text-orange-400 text-[9px] font-bold">
+                                  <Flame className="w-2.5 h-2.5 fill-orange-400" />
+                                  <span>35 Mg Streak</span>
+                                </span>
                               </div>
                             </div>
-
-                            <button
-                              type="button"
-                              onClick={() => setIsSimulatedUploadSuccess((prev) => !prev)}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1 ${
-                                isSimulatedUploadSuccess
-                                  ? 'bg-emerald-500 text-slate-950'
-                                  : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow'
-                              }`}
-                            >
-                              {isSimulatedUploadSuccess ? (
-                                <>
-                                  <CheckCircle2 className="w-3 h-3" />
-                                  <span>Diverifikasi ✓</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Coins className="w-3 h-3" />
-                                  <span>Setor Sekarang</span>
-                                </>
-                              )}
-                            </button>
                           </div>
+                          <span className="text-[10px] text-emerald-400 font-mono">Auto-Sync 1m</span>
+                        </div>
 
-                          {/* In-App Navigation Buttons */}
-                          <div className="grid grid-cols-2 gap-2 pt-0.5">
-                            <button
-                              onClick={() => {
-                                setCurrentStep(3);
-                                setActiveFeatureTab('buku');
-                              }}
-                              className="py-2 px-2.5 rounded-xl bg-slate-900 border border-white/10 hover:border-emerald-500/40 text-left text-xs font-semibold text-slate-200 hover:text-white flex items-center justify-between"
-                            >
-                              <span>Buku Absensi</span>
-                              <ChevronRight className="w-3.5 h-3.5 text-emerald-400" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setCurrentStep(3);
-                                setActiveFeatureTab('paket');
-                              }}
-                              className="py-2 px-2.5 rounded-xl bg-slate-900 border border-white/10 hover:border-amber-500/40 text-left text-xs font-semibold text-slate-200 hover:text-white flex items-center justify-between"
-                            >
-                              <span>Paket Lebaran</span>
-                              <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
+                        {/* 6-Week Recent Stamp Strip identik Dashboard */}
+                        <div className="grid grid-cols-6 gap-1">
+                          {[31, 32, 33, 34, 35, 36].map((w) => {
+                            const isPast = w <= 35;
+                            const isCurrent = w === 36;
+                            const isVerified = isPast || (isCurrent && checkedInWeek36);
 
-                      {/* ========================================================= */}
-                      {/* STEP 3: FITUR UNGGULAN (RICH DETAILED CATALOGUE) */}
-                      {/* ========================================================= */}
-                      {currentStep === 3 && (
-                        <motion.div
-                          key="step-features"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          transition={{ duration: 0.25 }}
-                          className="space-y-2.5"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center space-x-1">
-                                <Sparkles className="w-3 h-3" />
-                                <span>Katalog Fitur Lengkap</span>
+                            return (
+                              <div
+                                key={w}
+                                className={`p-1.5 rounded-xl border text-center flex flex-col justify-between ${
+                                  isVerified
+                                    ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
+                                    : 'bg-slate-900 border-amber-400/50 text-amber-300 ring-1 ring-amber-400/30'
+                                }`}
+                              >
+                                <div className="text-[9px] font-bold">Mg-{w}</div>
+                                <div className="my-1 flex items-center justify-center">
+                                  {isVerified ? (
+                                    <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+                                  ) : (
+                                    <Clock className="w-3.5 h-3.5 text-amber-400" />
+                                  )}
+                                </div>
+                                <span className="text-[8px] font-bold">
+                                  {isVerified ? 'Lunas' : 'Bayar'}
+                                </span>
                               </div>
-                              <h4 className="text-base font-bold text-white mt-0.5">Keunggulan NabungID</h4>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Hero Stats: Balance & Progress Ring identik Dashboard */}
+                      <div className="grid grid-cols-1 gap-2.5">
+                        {/* Circular Progress & Payout Projections */}
+                        <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-white/10 backdrop-blur-xl flex items-center justify-between gap-3">
+                          <div className="shrink-0">
+                            <CircularProgress currentWeek={35} totalWeeks={50} size={110} strokeWidth={10} />
+                          </div>
+
+                          <div className="flex-1 space-y-1 text-right">
+                            <div className="text-[10px] text-slate-400 uppercase tracking-wider">
+                              Proyeksi Pembagian H-1 Idul Fitri
                             </div>
-                            <button
-                              onClick={() => setCurrentStep(2)}
-                              className="text-[10px] text-slate-400 hover:text-white flex items-center space-x-1"
-                            >
-                              <ArrowLeft className="w-3 h-3" />
-                              <span>Kembali</span>
-                            </button>
+                            <div className="text-xl font-black font-mono text-amber-400">
+                              Rp 3.500.000
+                            </div>
+                            <div className="text-[10px] text-emerald-300 font-medium">
+                              Total 35 Minggu Terverifikasi
+                            </div>
+                            <div className="text-[9px] text-slate-400">
+                              Biaya Admin: Rp 0 • Paket: Sembako Daging
+                            </div>
                           </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-                          {/* 4 Feature Tabs */}
-                          <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-slate-900 border border-white/5 text-[10px] font-semibold">
-                            <button
-                              onClick={() => setActiveFeatureTab('buku')}
-                              className={`py-1 rounded-lg transition-all text-center ${
-                                activeFeatureTab === 'buku'
-                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                  : 'text-slate-400 hover:text-white'
-                              }`}
-                            >
-                              Buku 50 Mgg
-                            </button>
-                            <button
-                              onClick={() => setActiveFeatureTab('paket')}
-                              className={`py-1 rounded-lg transition-all text-center ${
-                                activeFeatureTab === 'paket'
-                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                  : 'text-slate-400 hover:text-white'
-                              }`}
-                            >
-                              Paket Sembako
-                            </button>
-                            <button
-                              onClick={() => setActiveFeatureTab('kwitansi')}
-                              className={`py-1 rounded-lg transition-all text-center ${
-                                activeFeatureTab === 'kwitansi'
-                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                  : 'text-slate-400 hover:text-white'
-                              }`}
-                            >
-                              Kwitansi QR
-                            </button>
-                            <button
-                              onClick={() => setActiveFeatureTab('darurat')}
-                              className={`py-1 rounded-lg transition-all text-center ${
-                                activeFeatureTab === 'darurat'
-                                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                  : 'text-slate-400 hover:text-white'
-                              }`}
-                            >
-                              Tarik Darurat
-                            </button>
-                          </div>
-
-                          {/* Dynamic Detailed Content */}
-                          <div className="p-3 rounded-2xl bg-slate-900/90 border border-white/10 min-h-[145px] flex flex-col justify-center">
-                            {activeFeatureTab === 'buku' && (
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-emerald-400 font-bold flex items-center space-x-1">
-                                    <Calendar className="w-3.5 h-3.5" />
-                                    <span>Matrix Absensi 50 Minggu</span>
-                                  </span>
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono font-semibold">
-                                    Transparan 100%
-                                  </span>
-                                </div>
-                                <p className="text-[11px] text-slate-300 leading-snug">
-                                  Setiap setoran diverifikasi otomatis mencentang kartu minggu terkait. Bebas salah catat!
-                                </p>
-                                <div className="grid grid-cols-10 gap-1 pt-0.5">
-                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((w) => (
-                                    <span
-                                      key={w}
-                                      className="h-4 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[8px] font-bold flex items-center justify-center font-mono"
-                                    >
-                                      ✓
-                                    </span>
-                                  ))}
-                                </div>
-                                <div className="text-[10px] text-slate-400 flex items-center justify-between">
-                                  <span>Minggu 1-35: Terbayar Lunas</span>
-                                  <span className="text-amber-300">Mgg 36: Tagihan Aktif</span>
-                                </div>
-                              </div>
-                            )}
-
-                            {activeFeatureTab === 'paket' && (
-                              <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-amber-400 font-bold flex items-center space-x-1">
-                                    <Beef className="w-3.5 h-3.5" />
-                                    <span>Rincian Paket Idul Fitri</span>
-                                  </span>
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-semibold">
-                                    Diantar H-1
-                                  </span>
-                                </div>
-                                <div className="text-[10px] text-slate-300 space-y-0.5 leading-tight">
-                                  <div>🥩 <strong>2 Kg Daging Sapi Segar</strong> (Grade A Rendang)</div>
-                                  <div>🛢️ <strong>2 Liter Minyak Goreng</strong> Kemasan Premium</div>
-                                  <div>🍪 <strong>2 Kaleng Biskuit</strong> Khong Guan / Butter Cookies</div>
-                                  <div>🍾 <strong>2 Botol Sirup</strong> Marjan Cocopandan</div>
-                                </div>
-                                <div className="text-[9px] text-emerald-400 font-semibold pt-0.5">
-                                  ✓ Sisa saldo uang tunai dicairkan penuh via transfer bank!
-                                </div>
-                              </div>
-                            )}
-
-                            {activeFeatureTab === 'kwitansi' && (
-                              <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-emerald-400 font-bold flex items-center space-x-1">
-                                    <Receipt className="w-3.5 h-3.5" />
-                                    <span>Kwitansi Resmi Ber-QR Code</span>
-                                  </span>
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono">
-                                    Sah & Terverifikasi
-                                  </span>
-                                </div>
-                                <div className="p-2 rounded-lg bg-slate-950 border border-white/5 text-[10px] space-y-1 font-mono">
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-400">No:</span>
-                                    <span className="text-white">KWT/2026/09/W35-088</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-400">Nominal:</span>
-                                    <span className="text-emerald-300 font-bold">Rp 100.000 (Lunas)</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-400">Verifikator:</span>
-                                    <span className="text-slate-300">Admin Keuangan (Ahmad A.)</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {activeFeatureTab === 'darurat' && (
-                              <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-rose-400 font-bold flex items-center space-x-1">
-                                    <ShieldCheck className="w-3.5 h-3.5" />
-                                    <span>Tarik Dana Darurat Bebas Denda</span>
-                                  </span>
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-semibold">
-                                    0% Denda
-                                  </span>
-                                </div>
-                                <div className="text-[10px] text-slate-300 space-y-1">
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-400">Saldo Anda:</span>
-                                    <span className="text-white font-mono font-bold">Rp 3.500.000</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-400">Maks. Penarikan (80%):</span>
-                                    <span className="text-amber-300 font-mono font-bold">Rp 2.800.000</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-400">Biaya Penalti:</span>
-                                    <span className="text-emerald-400 font-bold">Rp 0 (Bebas Denda Sakit)</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Bottom In-App Tab Navigation */}
-                    <div className="pt-2 border-t border-white/5 flex items-center justify-around text-[10px] font-semibold text-slate-400">
-                      <button
-                        onClick={() => setCurrentStep(2)}
-                        className={`flex flex-col items-center space-y-0.5 ${
-                          currentStep === 2 ? 'text-emerald-400 font-bold' : 'hover:text-white'
-                        }`}
-                      >
-                        <LayoutDashboard className="w-4 h-4" />
-                        <span>Beranda</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setCurrentStep(3);
-                          setActiveFeatureTab('buku');
-                        }}
-                        className={`flex flex-col items-center space-y-0.5 ${
-                          currentStep === 3 && activeFeatureTab === 'buku'
-                            ? 'text-emerald-400 font-bold'
-                            : 'hover:text-white'
-                        }`}
-                      >
-                        <Calendar className="w-4 h-4" />
-                        <span>Tabungan</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setCurrentStep(3);
-                          setActiveFeatureTab('paket');
-                        }}
-                        className={`flex flex-col items-center space-y-0.5 ${
-                          currentStep === 3 && activeFeatureTab === 'paket'
-                            ? 'text-amber-400 font-bold'
-                            : 'hover:text-white'
-                        }`}
-                      >
-                        <Gift className="w-4 h-4" />
-                        <span>Paket</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleReturnToHomescreen()}
-                        className="flex flex-col items-center space-y-0.5 text-slate-400 hover:text-white"
-                      >
-                        <Home className="w-4 h-4" />
-                        <span>Keluar HP</span>
-                      </button>
-                    </div>
+                {/* Real Bottom Navigation identik BottomNav.tsx */}
+                <div className="pt-2 mt-2 border-t border-white/10 flex items-center justify-around text-slate-400">
+                  <div
+                    onClick={() => setCurrentStep(2)}
+                    className={`flex flex-col items-center py-0.5 px-2 rounded-xl cursor-pointer ${
+                      currentStep === 2 ? 'text-amber-400 font-bold' : 'hover:text-white'
+                    }`}
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span className="text-[9px] mt-0.5">Beranda</span>
                   </div>
-                )}
+
+                  <div
+                    onClick={() => setCurrentStep(2)}
+                    className="flex flex-col items-center py-0.5 px-2 rounded-xl cursor-pointer hover:text-white"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-[9px] mt-0.5">Tabunganku</span>
+                  </div>
+
+                  <div
+                    onClick={() => setCurrentStep(2)}
+                    className="flex flex-col items-center py-0.5 px-2 rounded-xl cursor-pointer hover:text-white"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    <span className="text-[9px] mt-0.5">Paket Barang</span>
+                  </div>
+
+                  <div
+                    onClick={() => setCurrentStep(2)}
+                    className="flex flex-col items-center py-0.5 px-2 rounded-xl cursor-pointer hover:text-white"
+                  >
+                    <ShieldAlert className="w-4 h-4" />
+                    <span className="text-[9px] mt-0.5">Tarik Dana</span>
+                  </div>
+
+                  <div
+                    onClick={() => setCurrentStep(1)}
+                    className="flex flex-col items-center py-0.5 px-2 rounded-xl cursor-pointer hover:text-white"
+                  >
+                    <User className="w-4 h-4" />
+                    <span className="text-[9px] mt-0.5">Akun</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Bottom Home Indicator Bar */}
-              <div
-                onClick={handleReturnToHomescreen}
-                className="py-1.5 flex justify-center bg-slate-950/95 cursor-pointer hover:bg-slate-900 transition-colors"
-                title="Ketuk Home Bar untuk Kembali ke Layar Utama HP"
-              >
-                <div className="w-28 h-1 rounded-full bg-white/30 hover:bg-white/60 transition-colors" />
+              {/* Bottom Gesture Bar */}
+              <div className="py-1 flex justify-center bg-slate-950">
+                <div className="w-24 h-1 rounded-full bg-white/20" />
               </div>
             </div>
           </div>
-
-          {/* Popping 3D Floating Badges */}
-          <motion.div
-            style={{ transform: 'translateZ(50px)' }}
-            className="hidden sm:flex absolute -top-4 -right-6 z-40 items-center space-x-1.5 px-3 py-1.5 rounded-2xl bg-slate-900/95 border border-amber-400/40 text-amber-300 text-[11px] font-bold shadow-2xl backdrop-blur-xl pointer-events-none"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" style={{ animationDuration: '6s' }} />
-            <span>Siklus 1447 H Aktif</span>
-          </motion.div>
-
-          <motion.div
-            style={{ transform: 'translateZ(45px)' }}
-            className="hidden sm:flex absolute -bottom-3 -left-6 z-40 items-center space-x-1.5 px-3 py-1.5 rounded-2xl bg-emerald-950/95 border border-emerald-500/40 text-emerald-300 text-[11px] font-bold shadow-2xl backdrop-blur-xl pointer-events-none"
-          >
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>100% Amanah & Transparan</span>
-          </motion.div>
-
-          {/* 3D Floating Drop Shadow */}
-          <motion.div
-            style={{
-              x: shadowX,
-              y: shadowY,
-            }}
-            className="absolute -bottom-10 left-6 right-6 h-12 rounded-[100%] bg-emerald-950/70 blur-2xl -z-20 pointer-events-none"
-          />
         </motion.div>
       </div>
 
-      {/* Helper & Direct Action Bar */}
+      {/* Helper & Direct Link Bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-900/70 border border-white/5 text-xs text-slate-400">
         <span className="flex items-center space-x-1.5">
           <Rotate3d className="w-4 h-4 text-emerald-400" />
-          <span>Demo otomatis berjalan • Gerakkan kursor untuk efek 3D HP</span>
+          <span>Demo otomatis 3 alur nasabah • Posisi lurus sesuai aplikasi nyata</span>
         </span>
         <div className="flex items-center space-x-3">
+          <Link
+            href="/register"
+            className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-2 flex items-center space-x-1"
+          >
+            <span>Buka Daftar Penuh</span>
+            <ExternalLink className="w-3 h-3" />
+          </Link>
           <Link
             href="/login"
             className="text-amber-400 hover:text-amber-300 font-semibold underline underline-offset-2 flex items-center space-x-1"
           >
             <span>Buka Login Penuh</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3 h-3" />
           </Link>
           <Link
             href="/dashboard"
             className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-2 flex items-center space-x-1"
           >
             <span>Buka Dashboard Penuh</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3 h-3" />
           </Link>
         </div>
       </div>
