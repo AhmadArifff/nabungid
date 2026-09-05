@@ -43,6 +43,19 @@ export class ApiClient {
       });
 
       const json = await res.json();
+
+      // If backend reports maintenance mode (503), redirect non-admin nasabah to /maintenance
+      if (res.status === 503 && json.maintenance) {
+        if (
+          typeof window !== 'undefined' &&
+          !window.location.pathname.startsWith('/admin') &&
+          window.location.pathname !== '/login' &&
+          window.location.pathname !== '/maintenance'
+        ) {
+          window.location.href = '/maintenance';
+        }
+      }
+
       return json;
     } catch (err: any) {
       return {

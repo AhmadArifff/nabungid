@@ -5,10 +5,12 @@ import nasabahRoutes from './nasabah.routes';
 import withdrawalRoutes from './withdrawal.routes';
 import adminRoutes from './admin.routes';
 import masterRoutes from './master.routes';
+import { systemRoutes } from './system.routes';
 
 const rootRouter = Router();
 
 // Mount API v1 modules
+rootRouter.use('/system', systemRoutes);
 rootRouter.use('/auth', authRoutes);
 rootRouter.use('/programs', programRoutes);
 rootRouter.use('/nasabah', nasabahRoutes);

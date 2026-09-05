@@ -12,8 +12,10 @@ import {
   Gift,
   ArrowLeft,
   Users,
+  Wrench,
 } from 'lucide-react';
 import { useAdminStore } from '../../stores/useAdminStore';
+import { useSystemStore } from '../../stores/useSystemStore';
 
 const MENU_ITEMS = [
   { href: '/admin/dashboard', label: 'Dashboard Ringkasan', icon: LayoutDashboard },
@@ -22,11 +24,13 @@ const MENU_ITEMS = [
   { href: '/admin/penarikan', label: 'Persetujuan Darurat', icon: ShieldAlert, badgeKey: 'pendingWithdrawals' },
   { href: '/admin/master-data', label: 'Master Data (Zero Hardcode)', icon: Database },
   { href: '/admin/distribusi', label: 'Distribusi & Payout H-1', icon: Gift },
+  { href: '/admin/maintenance', label: 'Mode Maintenance', icon: Wrench, isMaintenanceItem: true },
 ];
 
 export const AdminSidebar: React.FC = () => {
   const pathname = usePathname();
   const { pendingLedgers, pendingWithdrawals } = useAdminStore();
+  const { maintenance } = useSystemStore();
 
   return (
     <aside className="w-64 bg-slate-900/90 border-r border-white/10 flex flex-col justify-between shrink-0 h-screen sticky top-0">
@@ -77,6 +81,11 @@ export const AdminSidebar: React.FC = () => {
                 {badgeCount > 0 && (
                   <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-bold">
                     {badgeCount}
+                  </span>
+                )}
+                {item.isMaintenanceItem && maintenance.isMaintenance && (
+                  <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold animate-pulse">
+                    AKTIF
                   </span>
                 )}
               </Link>

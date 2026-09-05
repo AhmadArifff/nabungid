@@ -263,3 +263,21 @@ model AdminAuditLog {
   @@index([adminId])
   @@index([entityName, entityId])
 }
+
+model SystemSetting {
+  key         String   @id // e.g. "MAINTENANCE_MODE"
+  value       String   // JSON string configuration
+  description String?
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
+model CronjobKeepalive {
+  id        BigInt   @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  source    String?
+  message   String?
+
+  @@map("cronjob_keepalive")
+}

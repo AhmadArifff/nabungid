@@ -63,6 +63,13 @@ export const UpdateProfileSchema = z.object({
   address: z.string().optional(),
 });
 
+export const UpdateMaintenanceSchema = z.object({
+  isMaintenance: z.boolean(),
+  message: z.string().min(5, 'Pesan pemeliharaan minimal 5 karakter'),
+  estimatedEndTime: z.string().optional().nullable(),
+  contactWhatsapp: z.string().optional().nullable(),
+});
+
 // CamelCase aliases
 export const registerSchema = RegisterSchema;
 export const loginSchema = LoginSchema;
@@ -70,4 +77,5 @@ export const updateProfileSchema = UpdateProfileSchema;
 export const enrollProgramSchema = EnrollProgramSchema;
 export const emergencyWithdrawalRequestSchema = EmergencyWithdrawalSchema;
 export const paymentProofUploadSchema = PaymentProofUploadSchema;
+export const updateMaintenanceSchema = UpdateMaintenanceSchema;
 

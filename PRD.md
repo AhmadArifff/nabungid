@@ -278,6 +278,17 @@ Untuk menjamin integritas data nasabah, reliabilitas sistem perpesanan WhatsApp,
 
 ---
 
+### 4.10 Fitur Kontrol Pemeliharaan Sistem (Global Maintenance Mode & Blockade)
+
+Untuk memfasilitasi peningkatan server atau penyesuaian operasional tanpa risiko konflik data transaksi:
+1. **Admin Control Switch:** Pengelola dapat mengaktifkan atau mematikan mode maintenance melalui menu `/admin/maintenance`.
+2. **Nasabah & Public Blockade:** Saat aktif, seluruh rute nasabah (`/`, `/dashboard`, `/tabunganku`, `/paket`, `/penarikan`, `/profil`, `/register`) dialihkan secara global ke halaman `/maintenance`.
+3. **Pemberitahuan Informatif:** Menampilkan pesan kustom pengurus, estimasi waktu selesai, jaminan keamanan saldo, dan tombol langsung WhatsApp Admin.
+4. **Jaminan Akses Administrator (Admin Immunity):** Seluruh rute `/admin/*` dan otentikasi login Admin tetap aktif secara mutlak via backend middleware guard, mencegah risiko lockout.
+5. **Auto-Recovery:** Halaman maintenance di sisi nasabah secara otomatis mendeteksi ketika status maintenance dimatikan dan langsung mengarahkan kembali ke aplikasi normal.
+
+---
+
 ## 5. System Architecture & Monorepo Structure
 
 Aplikasi dibangun menggunakan arsitektur **Turborepo Monorepo**:
